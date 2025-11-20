@@ -3,210 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historische Bergwerke Saarland</title>
+    <title>Historischer Atlas Saarland: Bergbau & Bahn</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
-    <!-- Tailwind CSS für schnelles Styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
         #map { height: 100%; width: 100%; z-index: 1; }
         
-        /* Glasmorphismus Effekt */
         .glass-panel {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
-        /* Scrollbar hübscher machen */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         .mine-item:hover {
-            background-color: #fef2f2; /* rötlicher hintergrund bei hover */
+            background-color: #fef2f2;
             border-left-color: #dc2626;
+        }
+
+        /* Layer Control Styling Anpassung für Tailwind-Look */
+        .leaflet-control-layers {
+            border: none !important;
+            border-radius: 0.75rem !important;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+            padding: 10px !important;
+            font-family: inherit;
         }
     </style>
 </head>
-<body class="relative h-screen w-screen">
+<body class="relative h-screen w-screen bg-gray-100">
 
-    <!-- Overlay Header (Links oben) -->
+    <!-- Header Desktop -->
     <div class="absolute top-4 left-4 z-[1000] glass-panel p-5 rounded-xl shadow-2xl max-w-xs border-l-4 border-red-600 hidden md:block">
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">Das schwarze Gold</h1>
-        <p class="text-sm text-gray-600">Eine historische Reise zu den 10 bedeutendsten ehemaligen Steinkohlebergwerken des Saarlandes.</p>
+        <h1 class="text-2xl font-bold text-gray-800 mb-1">Industriekultur Saar</h1>
+        <p class="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">Kohle & Dampf (1815-1945)</p>
+        <p class="text-sm text-gray-600">Entdecke die 20 wichtigsten Gruben und die historischen Eisenbahnlinien, die das Land prägten.</p>
     </div>
 
-    <!-- Mobile Header (Nur sichtbar auf kleinen Bildschirmen) -->
-    <div class="absolute top-0 left-0 right-0 z-[1000] glass-panel p-3 border-b border-gray-200 md:hidden">
-        <h1 class="text-lg font-bold text-gray-800 text-center">Saarland Bergbau</h1>
+    <!-- Header Mobile -->
+    <div class="absolute top-0 left-0 right-0 z-[1000] glass-panel p-3 border-b border-gray-200 md:hidden flex justify-between items-center">
+        <h1 class="text-lg font-bold text-gray-800 pl-2">Saarland Bergbau</h1>
     </div>
 
     <!-- Sidebar Liste (Rechts) -->
-    <div class="absolute top-16 md:top-4 right-4 bottom-12 width-full md:w-80 z-[1000] flex flex-col pointer-events-none">
+    <div class="absolute top-16 md:top-4 right-4 bottom-12 w-64 md:w-80 z-[1000] flex flex-col pointer-events-none">
         <div class="glass-panel rounded-xl shadow-2xl flex flex-col max-h-full pointer-events-auto overflow-hidden">
             <div class="p-4 bg-gray-50 border-b border-gray-200">
-                <h2 class="font-bold text-gray-700">Bergwerke Liste</h2>
-                <p class="text-xs text-gray-500">Wähle einen Ort zum Anfliegen</p>
+                <h2 class="font-bold text-gray-700">Standorte</h2>
+                <p class="text-xs text-gray-500">Klicke zum Anfliegen</p>
             </div>
-            <div id="mines-list" class="overflow-y-auto p-2 space-y-2">
-                <!-- Hier werden die Einträge per Javascript eingefügt -->
+            <div id="mines-list" class="overflow-y-auto p-2 space-y-2 bg-white/50">
+                <!-- Liste wird per JS gefüllt -->
             </div>
         </div>
     </div>
 
-    <!-- Map Container -->
+    <!-- Map -->
     <div id="map"></div>
 
     <!-- Footer -->
     <div class="absolute bottom-0 left-0 right-0 z-[1000] bg-gray-900 text-white text-xs py-2 px-4 text-center opacity-90">
-        &copy; 2024 Historischer Atlas Saarland | Entwickelt mit Vibe-Coding & Leaflet
+        &copy; 2024 Historischer Atlas Saarland | Vibe-Coding
     </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // --- DATEN ---
+        // --- DATEN: BERGWERKE (20 Stück) ---
         const mines = [
+            { id: 1, name: "Grube Reden", location: "Schiffweiler", coords: [49.3493, 7.1132], desc: "Großbergwerk, heute Standort von Gondwana." },
+            { id: 2, name: "Grube Göttelborn", location: "Quierschied", coords: [49.3548, 7.0335], desc: "Weißer Riese, Förderturm IV ist Landmarke." },
+            { id: 3, name: "Grube Camphausen", location: "Quierschied", coords: [49.3065, 7.0074], desc: "Architektonisch wertvoller Hammerkopfturm." },
+            { id: 4, name: "Grube Ensdorf", location: "Ensdorf", coords: [49.3089, 6.7725], desc: "Letztes aktives Bergwerk (bis 2012). Saarpolygon." },
+            { id: 5, name: "Grube Luisenthal", location: "Völklingen", coords: [49.2477, 6.8938], desc: "Tiefstes Bergwerk an der Saar." },
+            { id: 6, name: "Grube Warndt", location: "Großrosseln", coords: [49.1864, 6.8097], desc: "Modernste Anlage der 60er Jahre." },
+            { id: 7, name: "Grube Velsen", location: "Großrosseln", coords: [49.2219, 6.8363], desc: "Erlebnisbergwerk Velsen heute." },
+            { id: 8, name: "Grube Itzenplitz", location: "Heiligenwald", coords: [49.3542, 7.0869], desc: "Ältestes freistehendes Fördergerüst." },
+            { id: 9, name: "Grube Dechen", location: "Neunkirchen", coords: [49.3378, 7.1722], desc: "Eng verbunden mit dem Neunkircher Eisenwerk." },
+            { id: 10, name: "Grube Frankenholz", location: "Bexbach", coords: [49.3702, 7.2405], desc: "Ehemals tiefste Grube Bayerns (Pfalz)." },
+            { id: 11, name: "Grube Maybach", location: "Friedrichsthal", coords: [49.3205, 7.0632], desc: "Benannt nach dem preußischen Minister Albert von Maybach." },
+            { id: 12, name: "Grube Viktoria", location: "Püttlingen", coords: [49.2927, 6.8882], desc: "Machte Püttlingen zur Köllertal-Metropole." },
+            { id: 13, name: "Grube Von der Heydt", location: "Saarbrücken", coords: [49.2688, 6.9575], desc: "Im Wald gelegen, mit historischer Arbeitersiedlung." },
+            { id: 14, name: "Grube Jägersfreude", location: "Saarbrücken", coords: [49.2610, 7.0050], desc: "Wichtiger Standort nahe der Hauptbahnlinie." },
+            { id: 15, name: "Grube Kohlwald", location: "Wiebelskirchen", coords: [49.3680, 7.1980], desc: "Grenzgrube zu Bayern (Pfalz), heute Naturdenkmal." },
+            { id: 16, name: "Grube St. Ingbert", location: "St. Ingbert", coords: [49.2830, 7.1180], desc: "Rischbachstollen, heute Besucherbergwerk." },
+            { id: 17, name: "Grube Hostenbach", location: "Wadgassen", coords: [49.2650, 6.7950], desc: "Älterer Bergbau im Bisttal." },
+            { id: 18, name: "Grube Dilsburg", location: "Heusweiler", coords: [49.3350, 6.9350], desc: "Betrieb bis 1931, Schachtanlage der Grube Göttelborn." },
+            { id: 19, name: "Grube König", location: "Neunkirchen", coords: [49.3450, 7.1750], desc: "Große historische Bedeutung für Neunkirchen." },
+            { id: 20, name: "Grube Hirschbach", location: "Dudweiler", coords: [49.2850, 7.0450], desc: "Verbund mit Jägersfreude, heute Naherholungsgebiet." }
+        ];
+
+        // --- DATEN: HISTORISCHE BAHNSTRECKEN (Vereinfachte Pfade) ---
+        // Koordinaten sind approximiert für visuelle Darstellung
+        const railways = [
             {
-                id: 1,
-                name: "Grube Reden",
-                location: "Schiffweiler",
-                coords: [49.3493, 7.1132],
-                desc: "Bekannt für den 'Gondwana - Das Praehistorium' Park heute. Betriebsende: 1995."
+                name: "Pfälzische Ludwigsbahn (1849/52)",
+                color: "#1e40af", // Dunkelblau
+                path: [
+                    [49.380, 7.350], // Homburg
+                    [49.345, 7.260], // Bexbach
+                    [49.345, 7.180], // Neunkirchen
+                    [49.280, 7.110], // St. Ingbert
+                    [49.240, 7.000], // Saarbrücken
+                    [49.190, 6.890]  // Richtung Forbach
+                ]
             },
             {
-                id: 2,
-                name: "Grube Göttelborn",
-                location: "Quierschied",
-                coords: [49.3548, 7.0335],
-                desc: "Eines der modernsten Bergwerke Europas bis zur Stilllegung im Jahr 2000. Markanter weißer Förderturm."
+                name: "Nahetalbahn (1860)",
+                color: "#047857", // Grün
+                path: [
+                    [49.550, 7.150], // Von Norden (Nohfelden)
+                    [49.450, 7.100], // St. Wendel
+                    [49.350, 7.180], // Neunkirchen (Anschluss Ludwigsbahn)
+                    [49.260, 7.000]  // Saarbrücken
+                ]
             },
             {
-                id: 3,
-                name: "Grube Camphausen",
-                location: "Quierschied",
-                coords: [49.3065, 7.0074],
-                desc: "Markant durch den Förderturm im Backstein-Expressionismus. Betriebsende: 1990."
+                name: "Saartalbahn (Trierer Linie)",
+                color: "#b91c1c", // Rot
+                path: [
+                    [49.240, 7.000], // Saarbrücken
+                    [49.250, 6.850], // Völklingen
+                    [49.310, 6.750], // Saarlouis
+                    [49.380, 6.650], // Dillingen
+                    [49.450, 6.600], // Merzig
+                    [49.600, 6.550]  // Richtung Trier
+                ]
             },
             {
-                id: 4,
-                name: "Grube Ensdorf",
-                location: "Ensdorf",
-                coords: [49.3089, 6.7725],
-                desc: "Hier wurde 2012 die letzte Kohle im Saarland gefördert. Bekannt für das 'Saarpolygon'."
-            },
-            {
-                id: 5,
-                name: "Grube Luisenthal",
-                location: "Völklingen",
-                coords: [49.2477, 6.8938],
-                desc: "Traurige Bekanntheit durch das schwere Grubenunglück 1962. Betriebsende: 2005."
-            },
-            {
-                id: 6,
-                name: "Grube Warndt",
-                location: "Großrosseln",
-                coords: [49.1864, 6.8097],
-                desc: "Ein sehr junges Bergwerk (Förderbeginn erst 1963). Verbundbergwerk mit Luisenthal."
-            },
-            {
-                id: 7,
-                name: "Grube Velsen",
-                location: "Großrosseln",
-                coords: [49.2219, 6.8363],
-                desc: "Heute ein Erlebnisbergwerk. Wichtig für die Kaffeeküche und historische Architektur."
-            },
-            {
-                id: 8,
-                name: "Grube Itzenplitz",
-                location: "Heiligenwald",
-                coords: [49.3542, 7.0869],
-                desc: "Bekannt durch die malerische Itzenplitzer Weiheranlage und das älteste erhaltene Fördergerüst."
-            },
-            {
-                id: 9,
-                name: "Grube Dechen",
-                location: "Neunkirchen",
-                coords: [49.3378, 7.1722],
-                desc: "Tiefbau begann hier schon im frühen 19. Jahrhundert. Teil der Neunkircher Eisenwerk-Geschichte."
-            },
-            {
-                id: 10,
-                name: "Grube Frankenholz",
-                location: "Bexbach",
-                coords: [49.3702, 7.2405],
-                desc: "Einst die tiefste Grube im Saarrevier. Betriebsende bereits 1959."
+                name: "Fischbachtalbahn (1879)",
+                color: "#d97706", // Orange - Wichtig für Kohletransport!
+                path: [
+                    [49.240, 7.000], // Saarbrücken
+                    [49.300, 7.010], // Camphausen
+                    [49.330, 7.030], // Quierschied
+                    [49.350, 7.180]  // Neunkirchen
+                ]
             }
         ];
 
-        // --- KARTE INITIALISIEREN ---
-        const map = L.map('map', { zoomControl: false }).setView([49.35, 6.95], 11);
+        // --- KARTE SETUP ---
+        const map = L.map('map', { zoomControl: false }).setView([49.30, 7.00], 11);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        const baseLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap, &copy; CARTO',
             subdomains: 'abcd',
             maxZoom: 19
         }).addTo(map);
 
+        // --- LAYER GRUPPEN ---
+        const minesLayer = L.layerGroup().addTo(map);
+        const railsLayer = L.layerGroup().addTo(map); // Standardmäßig an
+
         // --- ICONS ---
         const redIcon = L.divIcon({
             className: 'custom-div-icon',
-            html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#dc2626" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 drop-shadow-lg filter"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>`,
-            iconSize: [40, 40],
-            iconAnchor: [20, 40],
-            popupAnchor: [0, -40]
+            html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#dc2626" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 drop-shadow-md"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
         });
 
-        // Globales Objekt zum Speichern der Marker, um sie später anzusteuern
         const markers = {};
 
-        // --- LOGIK ---
+        // --- BERGWERKE RENDERN ---
         const listContainer = document.getElementById('mines-list');
-
+        
         mines.forEach(mine => {
-            // 1. Marker auf Karte
-            const marker = L.marker(mine.coords, {icon: redIcon}).addTo(map);
-            markers[mine.id] = marker; // Marker speichern
+            // Marker
+            const marker = L.marker(mine.coords, {icon: redIcon}).addTo(minesLayer);
+            markers[mine.id] = marker;
 
-            const popupContent = `
+            marker.bindPopup(`
                 <div class="p-1 min-w-[200px]">
                     <h3 class="font-bold text-lg text-red-700 mb-1">${mine.name}</h3>
                     <p class="text-xs font-semibold text-gray-500 uppercase mb-2">${mine.location}</p>
                     <p class="text-sm text-gray-700 leading-snug">${mine.desc}</p>
                 </div>
-            `;
-            marker.bindPopup(popupContent);
+            `);
 
-            // 2. Eintrag in die Liste (HTML generieren)
+            // Liste
             const listItem = document.createElement('div');
             listItem.className = 'mine-item p-3 rounded-lg cursor-pointer transition-all border-l-4 border-transparent bg-white shadow-sm mb-2';
             listItem.innerHTML = `
                 <h4 class="font-bold text-gray-800 text-sm">${mine.name}</h4>
                 <span class="text-xs text-gray-500">${mine.location}</span>
             `;
-
-            // 3. Interaktion: Klick auf Liste bewegt Karte
             listItem.addEventListener('click', () => {
-                // Sanfter Flug zur Position
-                map.flyTo(mine.coords, 14, {
-                    duration: 1.5 // Dauer des Flugs in Sekunden
-                });
-                // Popup öffnen, sobald der Flug ankommt
-                setTimeout(() => {
-                    markers[mine.id].openPopup();
-                }, 1500);
+                map.flyTo(mine.coords, 13, { duration: 1.5 });
+                setTimeout(() => markers[mine.id].openPopup(), 1500);
             });
-
             listContainer.appendChild(listItem);
         });
+
+        // --- BAHNSTRECKEN RENDERN ---
+        railways.forEach(rail => {
+            L.polyline(rail.path, {
+                color: rail.color,
+                weight: 4,
+                opacity: 0.7,
+                dashArray: '10, 10', // Gestrichelt für historischen Look
+                lineCap: 'round'
+            }).bindPopup(`<b style="color:${rail.color}">${rail.name}</b><br>Historische Hauptverkehrsader`).addTo(railsLayer);
+        });
+
+        // --- LAYER CONTROL HINZUFÜGEN ---
+        const overlays = {
+            "Bergwerke (Nadeln)": minesLayer,
+            "Schienennetz (Historisch)": railsLayer
+        };
+        
+        L.control.layers(null, overlays, { position: 'topright' }).addTo(map);
 
     </script>
 </body>
