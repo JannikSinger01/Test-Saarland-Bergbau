@@ -40,15 +40,14 @@
             border-left-color: #16a34a;
         }
 
-        /* Leaflet Popup Anpassung für Bilder */
+        /* Leaflet Popup Anpassung */
         .leaflet-popup-content-wrapper {
             border-radius: 0.75rem;
             padding: 0;
-            overflow: hidden;
         }
         .leaflet-popup-content {
             margin: 0 !important;
-            width: 280px !important;
+            width: 260px !important;
         }
 
         /* Layer Control Styling */
@@ -73,7 +72,7 @@
             <span class="text-gray-400">&bull;</span>
             <span class="text-blue-600">Bahn</span>
         </div>
-        <p class="text-sm text-gray-600">Die Symbiose aus Gruben, Hüttenwerken und Eisenbahnen (1815-1980).</p>
+        <p class="text-sm text-gray-600">Die Symbiose aus Gruben, Hüttenwerken und Eisenbahnen (1815-2012).</p>
     </div>
 
     <!-- Header Mobile -->
@@ -85,7 +84,7 @@
     <div class="absolute top-16 md:top-4 right-4 bottom-12 w-64 md:w-80 z-[1000] flex flex-col pointer-events-none">
         <div class="glass-panel rounded-xl shadow-2xl flex flex-col max-h-full pointer-events-auto overflow-hidden">
             <div class="p-4 bg-gray-50 border-b border-gray-200">
-                <h2 class="font-bold text-gray-700">Standorte</h2>
+                <h2 class="font-bold text-gray-700">Standorte & Epochen</h2>
                 <p class="text-xs text-gray-500">Klicke zum Anfliegen</p>
             </div>
             <div id="locations-list" class="overflow-y-auto p-2 space-y-4 bg-white/50">
@@ -106,68 +105,93 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // --- DATEN: LANDESGRENZE SAARLAND (Vereinfachtes Polygon) ---
-        // Diese Koordinaten zeichnen grob den Umriss des Saarlandes nach
+        // --- DATEN: LANDESGRENZE SAARLAND (Maximale Details) ---
+        // Enthält deutlich mehr Stützpunkte für einen realistischen Verlauf
         const saarlandBorder = [
-            [49.63, 6.95], // Norden (Nonnweiler)
-            [49.50, 7.15], // Nordost
-            [49.35, 7.40], // Osten (Homburg Grenze)
-            [49.15, 7.15], // Südost (Bliesgau)
-            [49.12, 7.05], // Süden (Kleinblittersdorf)
-            [49.18, 6.85], // Südwest (Warndt)
-            [49.22, 6.65], // Westen (Überherrn)
-            [49.45, 6.35], // Nordwest (Moselkeil)
-            [49.55, 6.55], // Mettlach
-            [49.63, 6.95]  // Schließen
+            // Nördliche Grenze (Nonnweiler bis Freisen)
+            [49.630, 6.970], [49.640, 7.020], [49.625, 7.080], [49.600, 7.100],
+            [49.580, 7.130], [49.570, 7.180], [49.550, 7.200], [49.540, 7.250],
+            [49.520, 7.290], [49.500, 7.320], [49.480, 7.340],
+            
+            // Östliche Grenze (Homburg / Waldmohr / Einöd)
+            [49.450, 7.380], [49.420, 7.420], [49.380, 7.430], [49.350, 7.420],
+            [49.320, 7.400], [49.300, 7.380], [49.280, 7.360], [49.260, 7.370],
+            [49.240, 7.350], [49.220, 7.300],
+            
+            // Südöstliche Grenze (Bliesgau)
+            [49.180, 7.360], [49.160, 7.380], [49.140, 7.350], [49.120, 7.300],
+            [49.110, 7.250], [49.120, 7.180], [49.130, 7.120],
+            
+            // Südliche Grenze (Kleinblittersdorf / Saargemünd / Saarbrücken Süd)
+            [49.110, 7.080], [49.100, 7.040], [49.120, 7.000], [49.140, 6.980],
+            [49.160, 6.950], [49.180, 6.920], [49.200, 6.900],
+            
+            // Warndt (Die charakteristische Einbuchtung nach Süden)
+            [49.190, 6.880], [49.170, 6.850], [49.160, 6.800], // Tiefster Punkt Warndt
+            [49.170, 6.750], [49.190, 6.720], [49.210, 6.700],
+            [49.230, 6.680], // Überherrn Süd
+            
+            // Westliche Grenze (Saarlouis Land / Wallerfangen)
+            [49.250, 6.650], [49.280, 6.620], [49.300, 6.600],
+            [49.330, 6.640], [49.360, 6.660], [49.390, 6.620],
+            [49.420, 6.580], [49.440, 6.520],
+            
+            // Die "Mosel-Nase" bei Perl (Westlichster Punkt)
+            [49.460, 6.450], [49.470, 6.380], [49.475, 6.360], // Dreiländereck
+            [49.500, 6.380], [49.520, 6.420], [49.540, 6.480],
+            
+            // Nordwestliche Grenze (Mettlach / Losheim)
+            [49.550, 6.520], [49.540, 6.580], [49.550, 6.620],
+            [49.570, 6.680], [49.590, 6.750], [49.610, 6.850],
+            [49.620, 6.900], [49.630, 6.970] // Zurück zum Start
         ];
 
-        // --- DATEN: BERGWERKE (Rot) ---
-        // Bilder: Wir nutzen Wikimedia Commons oder Platzhalter
+        // --- DATEN: BERGWERKE (Rot) mit ZEITRAUM ---
         const mines = [
-            { id: "m1", name: "Grube Reden", location: "Schiffweiler", coords: [49.3493, 7.1132], desc: "Großbergwerk, heute Standort von Gondwana.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Grube_Reden_Bildstockstrasse.jpg/640px-Grube_Reden_Bildstockstrasse.jpg" },
-            { id: "m2", name: "Grube Göttelborn", location: "Quierschied", coords: [49.3548, 7.0335], desc: "Weißer Riese, Förderturm IV ist Landmarke.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/G%C3%B6ttelborn_Schacht_4.jpg/640px-G%C3%B6ttelborn_Schacht_4.jpg" },
-            { id: "m3", name: "Grube Camphausen", location: "Quierschied", coords: [49.3065, 7.0074], desc: "Architektonisch wertvoller Hammerkopfturm.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/F%C3%B6rderturm_Grube_Camphausen_IV.jpg/640px-F%C3%B6rderturm_Grube_Camphausen_IV.jpg" },
-            { id: "m4", name: "Grube Ensdorf", location: "Ensdorf", coords: [49.3089, 6.7725], desc: "Letztes aktives Bergwerk. Bekannt für das Saarpolygon.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Saarpolygon_auf_der_Bergehalde_in_Ensdorf.jpg/640px-Saarpolygon_auf_der_Bergehalde_in_Ensdorf.jpg" },
-            { id: "m5", name: "Grube Luisenthal", location: "Völklingen", coords: [49.2477, 6.8938], desc: "Tiefstes Bergwerk an der Saar.", img: "https://placehold.co/600x400/333/FFF?text=Grube+Luisenthal" },
-            { id: "m6", name: "Grube Warndt", location: "Großrosseln", coords: [49.1864, 6.8097], desc: "Modernste Anlage der 60er Jahre.", img: "https://placehold.co/600x400/333/FFF?text=Grube+Warndt" },
-            { id: "m7", name: "Grube Velsen", location: "Großrosseln", coords: [49.2219, 6.8363], desc: "Erlebnisbergwerk Velsen heute.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Grube_Velsen_Gustav_II_Nord.jpg/640px-Grube_Velsen_Gustav_II_Nord.jpg" },
-            { id: "m8", name: "Grube Itzenplitz", location: "Heiligenwald", coords: [49.3542, 7.0869], desc: "Ältestes freistehendes Fördergerüst.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Grube_Itzenplitz_2010.jpg/640px-Grube_Itzenplitz_2010.jpg" },
-            { id: "m9", name: "Grube Dechen", location: "Neunkirchen", coords: [49.3378, 7.1722], desc: "Eng verbunden mit dem Neunkircher Eisenwerk.", img: "https://placehold.co/600x400/333/FFF?text=Grube+Dechen" },
-            { id: "m10", name: "Grube Frankenholz", location: "Bexbach", coords: [49.3702, 7.2405], desc: "Ehemals tiefste Grube Bayerns (Pfalz).", img: "https://placehold.co/600x400/333/FFF?text=Grube+Frankenholz" },
-            { id: "m11", name: "Grube Maybach", location: "Friedrichsthal", coords: [49.3205, 7.0632], desc: "Wichtig für die Industrialisierung im Sulzbachtal.", img: "https://placehold.co/600x400/333/FFF?text=Grube+Maybach" },
-            { id: "m12", name: "Grube Viktoria", location: "Püttlingen", coords: [49.2927, 6.8882], desc: "Machte Püttlingen zur Köllertal-Metropole.", img: "https://placehold.co/600x400/333/FFF?text=Grube+Viktoria" },
-            { id: "m13", name: "Grube Von der Heydt", location: "Saarbrücken", coords: [49.2688, 6.9575], desc: "Im Wald gelegen, mit historischer Arbeitersiedlung.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Von-der-Heydt-Schacht.jpg/640px-Von-der-Heydt-Schacht.jpg" },
-            { id: "m14", name: "Grube Jägersfreude", location: "Saarbrücken", coords: [49.2610, 7.0050], desc: "Wichtiger Standort nahe der Hauptbahnlinie.", img: "https://placehold.co/600x400/333/FFF?text=Grube+J%C3%A4gersfreude" },
-            { id: "m15", name: "Grube Kohlwald", location: "Wiebelskirchen", coords: [49.3680, 7.1980], desc: "Grenzgrube zu Bayern (Pfalz), heute Naturdenkmal.", img: "https://placehold.co/600x400/333/FFF?text=Grube+Kohlwald" },
-            { id: "m16", name: "Grube St. Ingbert", location: "St. Ingbert", coords: [49.2830, 7.1180], desc: "Rischbachstollen, heute Besucherbergwerk.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Besucherbergwerk_Rischbachstollen.jpg/640px-Besucherbergwerk_Rischbachstollen.jpg" },
-            { id: "m17", name: "Grube Hostenbach", location: "Wadgassen", coords: [49.2650, 6.7950], desc: "Älterer Bergbau im Bisttal.", img: "https://placehold.co/600x400/333/FFF?text=Grube+Hostenbach" },
-            { id: "m18", name: "Grube Dilsburg", location: "Heusweiler", coords: [49.3350, 6.9350], desc: "Betrieb bis 1931, Schachtanlage der Grube Göttelborn.", img: "https://placehold.co/600x400/333/FFF?text=Grube+Dilsburg" },
-            { id: "m19", name: "Grube König", location: "Neunkirchen", coords: [49.3450, 7.1750], desc: "Große historische Bedeutung für Neunkirchen.", img: "https://placehold.co/600x400/333/FFF?text=Grube+K%C3%B6nig" },
-            { id: "m20", name: "Grube Hirschbach", location: "Dudweiler", coords: [49.2850, 7.0450], desc: "Verbund mit Jägersfreude, heute Naherholungsgebiet.", img: "https://placehold.co/600x400/333/FFF?text=Grube+Hirschbach" }
+            { id: "m1", name: "Grube Reden", location: "Schiffweiler", coords: [49.3493, 7.1132], desc: "Großbergwerk, heute 'Gondwana'.", period: "1846 – 1995" },
+            { id: "m2", name: "Grube Göttelborn", location: "Quierschied", coords: [49.3548, 7.0335], desc: "Weißer Riese, markanter Förderturm IV.", period: "1887 – 2000" },
+            { id: "m3", name: "Grube Camphausen", location: "Quierschied", coords: [49.3065, 7.0074], desc: "Backstein-Expressionismus Architektur.", period: "1871 – 1990" },
+            { id: "m4", name: "Grube Ensdorf", location: "Ensdorf", coords: [49.3089, 6.7725], desc: "Letztes aktives Bergwerk (Saarpolygon).", period: "1833 – 2012" },
+            { id: "m5", name: "Grube Luisenthal", location: "Völklingen", coords: [49.2477, 6.8938], desc: "Tiefstes Bergwerk an der Saar.", period: "1820 – 2005" },
+            { id: "m6", name: "Grube Warndt", location: "Großrosseln", coords: [49.1864, 6.8097], desc: "Modernste Großschachtanlage.", period: "1963 – 2005" },
+            { id: "m7", name: "Grube Velsen", location: "Großrosseln", coords: [49.2219, 6.8363], desc: "Erlebnisbergwerk heute.", period: "1899 – 2005" },
+            { id: "m8", name: "Grube Itzenplitz", location: "Heiligenwald", coords: [49.3542, 7.0869], desc: "Ältestes erhaltenes Fördergerüst.", period: "1856 – 1960" },
+            { id: "m9", name: "Grube Dechen", location: "Neunkirchen", coords: [49.3378, 7.1722], desc: "Eng verbunden mit dem Eisenwerk.", period: "1855 – 1968" },
+            { id: "m10", name: "Grube Frankenholz", location: "Bexbach", coords: [49.3702, 7.2405], desc: "Ehemals tiefste Grube Bayerns.", period: "1879 – 1959" },
+            { id: "m11", name: "Grube Maybach", location: "Friedrichsthal", coords: [49.3205, 7.0632], desc: "Bekannt durch Marie-Juchacz-Schacht.", period: "1873 – 1964" },
+            { id: "m12", name: "Grube Viktoria", location: "Püttlingen", coords: [49.2927, 6.8882], desc: "Zentrale Rolle im Köllertal.", period: "1866 – 1963" },
+            { id: "m13", name: "Grube Von der Heydt", location: "Saarbrücken", coords: [49.2688, 6.9575], desc: "Waldgrube mit Arbeitersiedlung.", period: "1850 – 1965" },
+            { id: "m14", name: "Grube Jägersfreude", location: "Saarbrücken", coords: [49.2610, 7.0050], desc: "Wichtiger Standort an der Bahn.", period: "1856 – 1968" },
+            { id: "m15", name: "Grube Kohlwald", location: "Wiebelskirchen", coords: [49.3680, 7.1980], desc: "Grenzgrube zu Bayern (Pfalz).", period: "1842 – 1966" },
+            { id: "m16", name: "Grube St. Ingbert", location: "St. Ingbert", coords: [49.2830, 7.1180], desc: "Rischbachstollen.", period: "ca. 1770 – 1959" },
+            { id: "m17", name: "Grube Hostenbach", location: "Wadgassen", coords: [49.2650, 6.7950], desc: "Bergbau im Bisttal.", period: "1816 – 1932" },
+            { id: "m18", name: "Grube Dilsburg", location: "Heusweiler", coords: [49.3350, 6.9350], desc: "Schachtanlage der Grube Göttelborn.", period: "1911 – 1931" },
+            { id: "m19", name: "Grube König", location: "Neunkirchen", coords: [49.3450, 7.1750], desc: "Historisch bedeutend für NK.", period: "1820 – 1968" },
+            { id: "m20", name: "Grube Hirschbach", location: "Dudweiler", coords: [49.2850, 7.0450], desc: "Naherholungsgebiet heute.", period: "1816 – 1950" }
         ];
 
-        // --- DATEN: STAHL- & HÜTTENWERKE (Grün) ---
+        // --- DATEN: STAHL- & HÜTTENWERKE (Grün) mit ZEITRAUM ---
         const steelworks = [
-            { id: "s1", name: "Völklinger Hütte", location: "Völklingen", coords: [49.2485, 6.8442], desc: "UNESCO-Weltkulturerbe. Einzigartiges Industriedenkmal.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/V%C3%B6lklinger_H%C3%BCtte_01.jpg/640px-V%C3%B6lklinger_H%C3%BCtte_01.jpg" },
-            { id: "s2", name: "Dillinger Hütte", location: "Dillingen", coords: [49.3480, 6.7450], desc: "Älteste AG Deutschlands, Spezialist für Grobbleche.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Dillingen_H%C3%BCtte_Hochofen.jpg/640px-Dillingen_H%C3%BCtte_Hochofen.jpg" },
-            { id: "s3", name: "Neunkircher Eisenwerk", location: "Neunkirchen", coords: [49.3455, 7.1780], desc: "Prägte das Stadtbild extrem. Heute Industriekultur.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Neunkirchen_Hochofen_2008.jpg/640px-Neunkirchen_Hochofen_2008.jpg" },
-            { id: "s4", name: "Burbacher Hütte", location: "Saarbrücken", coords: [49.2420, 6.9350], desc: "Großes Hüttenwerk, später Teil von Saarstahl.", img: "https://placehold.co/600x400/166534/FFF?text=Burbacher+H%C3%BCtte" },
-            { id: "s5", name: "Halberger Hütte", location: "Brebach", coords: [49.2180, 7.0300], desc: "Gussrohre und Motorteile, traditionsreicher Standort.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Halberg_Guss.jpg/640px-Halberg_Guss.jpg" },
-            { id: "s6", name: "Alte Schmelz", location: "St. Ingbert", coords: [49.2750, 7.1050], desc: "Industriedenkmal und Kulturort.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Alte_Schmelz_St._Ingbert.jpg/640px-Alte_Schmelz_St._Ingbert.jpg" },
-            { id: "s7", name: "Röhrenwerke Bous", location: "Bous", coords: [49.2750, 6.8050], desc: "Mannesmannröhren-Werke, später Stahlwerk Bous.", img: "https://placehold.co/600x400/166534/FFF?text=R%C3%B6hrenwerke+Bous" },
-            { id: "s8", name: "Eisenwerk Homburg", location: "Homburg", coords: [49.3250, 7.3350], desc: "Bedeutend für die pfälzisch-saarländische Wirtschaft.", img: "https://placehold.co/600x400/166534/FFF?text=Eisenwerk+Homburg" },
-            { id: "s9", name: "Mariahütte", location: "Nonnweiler", coords: [49.6050, 6.9650], desc: "Historische Eisenhütte im Hochwald.", img: "https://placehold.co/600x400/166534/FFF?text=Mariah%C3%BCtte" },
-            { id: "s10", name: "Geislauterner Eisenwerk", location: "Völklingen", coords: [49.2350, 6.8300], desc: "Wiege des saarländischen Bergbaus und Eisenwesens.", img: "https://placehold.co/600x400/166534/FFF?text=Geislautern" },
-            { id: "s11", name: "St. Ingberter Eisenwerk", location: "St. Ingbert", coords: [49.2800, 7.1200], desc: "Einst Draht- und Nagelproduktion von Weltrang.", img: "https://placehold.co/600x400/166534/FFF?text=Eisenwerk+IGB" },
-            { id: "s12", name: "Hütte Krämer", location: "St. Ingbert", coords: [49.2720, 7.1150], desc: "Walzwerk-Tradition in St. Ingbert.", img: "https://placehold.co/600x400/166534/FFF?text=H%C3%BCtte+Kr%C3%A4mer" },
-            { id: "s13", name: "Eisenwerk Bettingen", location: "Schmelz", coords: [49.4350, 6.8600], desc: " Namensgebend für den Ort 'Schmelz'.", img: "https://placehold.co/600x400/166534/FFF?text=Schmelz" },
-            { id: "s14", name: "Aschbacher Eisenwerk", location: "Gersweiler", coords: [49.2300, 6.9100], desc: "Historische Schmelze an der Saar.", img: "https://placehold.co/600x400/166534/FFF?text=Aschbach" },
-            { id: "s15", name: "Fischbacher Schmelze", location: "Quierschied", coords: [49.3150, 7.0400], desc: "Frühindustrielle Anlage im Fischbachtal.", img: "https://placehold.co/600x400/166534/FFF?text=Fischbach" },
-            { id: "s16", name: "Goffontaine", location: "Schafbrücke", coords: [49.2250, 7.0500], desc: "Ehemaliges Eisenwerk und Drahtzug.", img: "https://placehold.co/600x400/166534/FFF?text=Goffontaine" },
-            { id: "s17", name: "Wadgasser Hütte", location: "Wadgassen", coords: [49.2700, 6.7900], desc: "Bekannt vor allem für Kristallglas.", img: "https://placehold.co/600x400/166534/FFF?text=Wadgassen" },
-            { id: "s18", name: "Karlsbrunner Hütte", location: "Großrosseln", coords: [49.1850, 6.8300], desc: "Historischer Standort im Warndt.", img: "https://placehold.co/600x400/166534/FFF?text=Karlsbrunn" },
-            { id: "s19", name: "Hütteweiler", location: "Illingen", coords: [49.3800, 7.0500], desc: "Verweis auf frühe Verhüttung im Namen.", img: "https://placehold.co/600x400/166534/FFF?text=H%C3%BCtteweiler" },
-            { id: "s20", name: "Hütte Wecklingen", location: "Blieskastel", coords: [49.2300, 7.2500], desc: "Kleinere historische Anlage im Bliestal.", img: "https://placehold.co/600x400/166534/FFF?text=Wecklingen" }
+            { id: "s1", name: "Völklinger Hütte", location: "Völklingen", coords: [49.2485, 6.8442], desc: "UNESCO-Weltkulturerbe.", period: "1873 – 1986" },
+            { id: "s2", name: "Dillinger Hütte", location: "Dillingen", coords: [49.3480, 6.7450], desc: "Grobblech-Spezialist.", period: "gegr. 1685 (aktiv)" },
+            { id: "s3", name: "Neunkircher Eisenwerk", location: "Neunkirchen", coords: [49.3455, 7.1780], desc: "Prägte das Stadtbild extrem.", period: "1593 – 1982" },
+            { id: "s4", name: "Burbacher Hütte", location: "Saarbrücken", coords: [49.2420, 6.9350], desc: "Teil von Saarstahl.", period: "gegr. 1856 (aktiv)" },
+            { id: "s5", name: "Halberger Hütte", location: "Brebach", coords: [49.2180, 7.0300], desc: "Gussrohre und Motorteile.", period: "gegr. 1756 (aktiv)" },
+            { id: "s6", name: "Alte Schmelz", location: "St. Ingbert", coords: [49.2750, 7.1050], desc: "Industriedenkmal.", period: "1733 – 1991" },
+            { id: "s7", name: "Röhrenwerke Bous", location: "Bous", coords: [49.2750, 6.8050], desc: "Mannesmannröhren-Werke.", period: "gegr. 1887" },
+            { id: "s8", name: "Eisenwerk Homburg", location: "Homburg", coords: [49.3250, 7.3350], desc: "Pfälzisch-saarländische Wirtschaft.", period: "ab 19. Jh." },
+            { id: "s9", name: "Mariahütte", location: "Nonnweiler", coords: [49.6050, 6.9650], desc: "Eisenhütte im Hochwald.", period: "ab 17. Jh." },
+            { id: "s10", name: "Geislauterner Eisenwerk", location: "Völklingen", coords: [49.2350, 6.8300], desc: "Wiege des Eisenwesens.", period: "1585 – 1875" },
+            { id: "s11", name: "St. Ingberter Eisenwerk", location: "St. Ingbert", coords: [49.2800, 7.1200], desc: "Draht- und Nagelproduktion.", period: "1733 – 1991" },
+            { id: "s12", name: "Hütte Krämer", location: "St. Ingbert", coords: [49.2720, 7.1150], desc: "Walzwerk-Tradition.", period: "19. Jh." },
+            { id: "s13", name: "Eisenwerk Bettingen", location: "Schmelz", coords: [49.4350, 6.8600], desc: "Namensgebend für 'Schmelz'.", period: "1686 – 1868" },
+            { id: "s14", name: "Aschbacher Eisenwerk", location: "Gersweiler", coords: [49.2300, 6.9100], desc: "Schmelze an der Saar.", period: "1724 – 1860" },
+            { id: "s15", name: "Fischbacher Schmelze", location: "Quierschied", coords: [49.3150, 7.0400], desc: "Frühindustrielle Anlage.", period: "1728 – 1860" },
+            { id: "s16", name: "Goffontaine", location: "Schafbrücke", coords: [49.2250, 7.0500], desc: "Eisenwerk und Drahtzug.", period: "18. Jh." },
+            { id: "s17", name: "Wadgasser Hütte", location: "Wadgassen", coords: [49.2700, 6.7900], desc: "Kristallglas & Eisen.", period: "17. - 19. Jh." },
+            { id: "s18", name: "Karlsbrunner Hütte", location: "Großrosseln", coords: [49.1850, 6.8300], desc: "Standort im Warndt.", period: "18. Jh." },
+            { id: "s19", name: "Hütteweiler", location: "Illingen", coords: [49.3800, 7.0500], desc: "Frühe Verhüttung.", period: "Mittelalter" },
+            { id: "s20", name: "Hütte Wecklingen", location: "Blieskastel", coords: [49.2300, 7.2500], desc: "Anlage im Bliestal.", period: "18. Jh." }
         ];
 
         // --- DATEN: BAHNSTRECKEN ---
@@ -183,21 +207,19 @@
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors, &copy; CARTO',
+            attribution: '&copy; OpenStreetMap, &copy; CARTO',
             subdomains: 'abcd',
             maxZoom: 19
         }).addTo(map);
 
-        // --- LANDESGRENZE ZEICHNEN ---
-        // Zeichnet das Polygon der Grenze
+        // --- LANDESGRENZE ZEICHNEN (Hochdetailliert & Fein) ---
         L.polygon(saarlandBorder, {
-            color: 'black',
-            weight: 3,
-            fill: false, // Kein Füllung, nur Rahmen
+            color: '#111827', // Fast schwarz (Tailwind gray-900)
+            weight: 2, // Linie ist fein
+            fill: false,
             opacity: 0.8,
             dashArray: '5, 5'
         }).addTo(map);
-
 
         // --- ICONS & LAYERS ---
         const minesLayer = L.layerGroup().addTo(map);
@@ -230,17 +252,18 @@
                 const marker = L.marker(item.coords, {icon: createIcon(iconColor)}).addTo(layer);
                 markers[item.id] = marker;
 
-                // Popup Inhalt mit BILD
+                // Popup Inhalt: Zeitstrahl Badge statt Bild
+                const badgeColorBg = typeClass === 'mine-item' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
                 const popupContent = `
-                    <div class="flex flex-col">
-                        <div class="h-32 w-full overflow-hidden bg-gray-200">
-                            <img src="${item.img}" alt="${item.name}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x400?text=Industriekultur';">
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg ${colorClass} leading-tight mb-1">${item.name}</h3>
+                        <p class="text-xs font-semibold text-gray-500 uppercase mb-2 flex justify-between">
+                            <span>${item.location}</span>
+                        </p>
+                        <div class="inline-block ${badgeColorBg} text-xs px-2 py-1 rounded-md font-mono mb-3 border border-opacity-20 border-current">
+                            ⏳ ${item.period}
                         </div>
-                        <div class="p-3">
-                            <h3 class="font-bold text-lg ${colorClass} mb-1 leading-tight">${item.name}</h3>
-                            <p class="text-xs font-semibold text-gray-500 uppercase mb-2">${item.location}</p>
-                            <p class="text-sm text-gray-700 leading-snug">${item.desc}</p>
-                        </div>
+                        <p class="text-sm text-gray-700 leading-snug">${item.desc}</p>
                     </div>
                 `;
                 marker.bindPopup(popupContent);
@@ -249,8 +272,13 @@
                 const listItem = document.createElement('div');
                 listItem.className = `list-item ${typeClass} p-3 rounded-lg cursor-pointer border-l-4 border-transparent bg-white shadow-sm mb-2`;
                 listItem.innerHTML = `
-                    <h4 class="font-bold text-gray-800 text-sm">${item.name}</h4>
-                    <span class="text-xs text-gray-500">${item.location}</span>
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-gray-800 text-sm">${item.name}</h4>
+                    </div>
+                    <div class="flex justify-between mt-1">
+                        <span class="text-xs text-gray-500">${item.location}</span>
+                        <span class="text-[10px] font-mono bg-gray-100 px-1 rounded text-gray-600">${item.period}</span>
+                    </div>
                 `;
                 listItem.addEventListener('click', () => {
                     map.flyTo(item.coords, 13, { duration: 1.5 });
