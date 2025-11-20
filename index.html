@@ -3,74 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saarland Dashboard: Gestern & Heute</title>
+    <title>Atlas Saar: Gestern & Heute</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Phosphor Icons für UI (Buttons) -->
+    <!-- Phosphor Icons (Sidebar) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        /* BASIS DESIGN */
+        body, html { 
+            margin: 0; padding: 0; height: 100%; 
+            font-family: 'Inter', sans-serif; 
+            overflow: hidden; 
+            background-color: #f8fafc;
+        }
         #map { height: 100%; width: 100%; z-index: 1; }
         
+        /* GLASSMORPHISMUS */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
         }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 5px; }
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Tab Active States */
+        /* TAB BUTTONS */
+        .tab-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
         .tab-btn.active {
-            background-color: #1e293b; /* Slate 800 */
+            background-color: #0f172a; /* Slate 900 */
             color: white;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
         }
         .tab-btn:hover:not(.active) {
-            background-color: #e2e8f0;
+            background-color: #f1f5f9;
+            transform: translateY(-1px);
         }
 
-        /* Leaflet Customization */
-        .leaflet-popup-content-wrapper { border-radius: 0.5rem; padding: 0; }
-        .leaflet-popup-content { margin: 0 !important; min-width: 240px; }
+        /* MARKER STYLE */
+        .leaflet-marker-icon {
+            /* Statisch */
+        }
+
+        /* LEAFLET POPUP */
+        .leaflet-popup-content-wrapper { 
+            border-radius: 12px; 
+            padding: 0; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            font-family: 'Inter', sans-serif;
+        }
+        .leaflet-popup-content { margin: 0 !important; min-width: 260px; }
+        .leaflet-container a.leaflet-popup-close-button {
+            color: #64748b;
+            padding: 8px;
+        }
+
+        /* WELCOME OVERLAY */
+        #welcome-overlay {
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+        #welcome-overlay.hidden-overlay {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
         .custom-div-icon { background: transparent; border: none; }
     </style>
 </head>
-<body class="relative h-screen w-screen bg-gray-100 text-slate-800">
+<body class="relative h-screen w-screen text-slate-800">
 
-    <!-- TOP NAVIGATION (Die 3 Schichten) -->
-    <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] glass-panel rounded-full p-1 flex shadow-2xl max-w-[95%] overflow-x-auto">
-        <button onclick="switchMode('history')" id="btn-history" class="tab-btn active px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="ph ph-factory text-lg"></i> Historie
+    <!-- WELCOME OVERLAY -->
+    <div id="welcome-overlay" class="absolute inset-0 z-[9999] bg-slate-900/90 backdrop-blur-md flex items-center justify-center text-white p-4">
+        <div class="max-w-lg text-center space-y-6 animate-fade-in-up">
+            <div class="inline-block p-3 bg-white/10 rounded-full mb-2">
+                <i class="ph ph-map-trifold text-4xl text-blue-400"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight">Atlas Saar</h1>
+            <p class="text-lg text-slate-300 leading-relaxed">
+                Eine interaktive Reise durch die Zeit.<br>
+                Von der <span class="text-red-400 font-bold">Industriekultur</span> über die <span class="text-purple-400 font-bold">Urbanisierung</span> bis zum modernen <span class="text-blue-400 font-bold">Verkehrsnetz</span>.
+            </p>
+            <button onclick="closeWelcome()" class="mt-8 px-8 py-3 bg-white text-slate-900 rounded-full font-bold text-lg shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:bg-blue-50 hover:scale-105 transition-all transform">
+                Karte erkunden
+            </button>
+            <p class="text-xs text-slate-500 pt-4">Datenstand: 2025</p>
+        </div>
+    </div>
+
+    <!-- TOP NAVIGATION -->
+    <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] glass-panel rounded-full p-1.5 flex shadow-xl max-w-[95%] overflow-x-auto border border-white/40">
+        <button onclick="switchMode('history')" id="btn-history" class="tab-btn active px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 whitespace-nowrap">
+            <i class="ph-fill ph-factory text-lg"></i> Historie
         </button>
-        <button onclick="switchMode('urban')" id="btn-urban" class="tab-btn px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="ph ph-buildings text-lg"></i> Urbanisierung
+        <button onclick="switchMode('urban')" id="btn-urban" class="tab-btn px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 whitespace-nowrap">
+            <i class="ph-fill ph-buildings text-lg"></i> Urbanisierung
         </button>
-        <button onclick="switchMode('transport')" id="btn-transport" class="tab-btn px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-            <i class="ph ph-train text-lg"></i> Verkehr Heute
+        <button onclick="switchMode('transport')" id="btn-transport" class="tab-btn px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 whitespace-nowrap">
+            <i class="ph-fill ph-train text-lg"></i> Verkehr
         </button>
     </div>
 
-    <!-- SIDEBAR INFO (Dynamisch) -->
-    <div class="absolute top-20 md:top-24 right-4 bottom-8 w-72 z-[1000] flex flex-col pointer-events-none">
-        <div class="glass-panel rounded-xl shadow-2xl flex flex-col max-h-full pointer-events-auto overflow-hidden">
-            <!-- Header der Sidebar -->
-            <div class="p-4 bg-slate-50/80 border-b border-slate-200">
-                <h2 id="sidebar-title" class="font-bold text-lg text-slate-800">Lade Daten...</h2>
-                <p id="sidebar-desc" class="text-xs text-slate-500 mt-1">Bitte warten</p>
+    <!-- SIDEBAR INFO -->
+    <div class="absolute top-24 right-4 bottom-10 w-80 z-[1000] flex flex-col pointer-events-none">
+        <div class="glass-panel rounded-2xl shadow-2xl flex flex-col max-h-full pointer-events-auto overflow-hidden transition-all duration-300 hover:shadow-xl">
+            <!-- Header -->
+            <div class="p-5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+                <h2 id="sidebar-title" class="font-bold text-xl text-slate-800 tracking-tight">Lade Daten...</h2>
+                <p id="sidebar-desc" class="text-sm text-slate-500 mt-1 font-medium">Bitte warten</p>
             </div>
             <!-- Liste -->
-            <div id="sidebar-content" class="overflow-y-auto p-2 space-y-2 bg-white/40 flex-1">
-                <!-- JS füllt dies -->
+            <div id="sidebar-content" class="overflow-y-auto p-3 space-y-2 bg-white/60 flex-1">
+                <!-- Content -->
             </div>
         </div>
     </div>
@@ -78,20 +141,26 @@
     <!-- MAP -->
     <div id="map"></div>
 
-    <!-- Footer -->
-    <div class="absolute bottom-0 left-0 z-[1000] bg-white/80 backdrop-blur px-3 py-1 text-[10px] rounded-tr-lg text-slate-500">
-        © 2025 Atlas Saar | Daten: Historisch & Modern
+    <!-- FOOTER -->
+    <div class="absolute bottom-0 left-0 z-[1000] bg-white/90 backdrop-blur px-4 py-1.5 text-[11px] font-medium text-slate-500 rounded-tr-xl border-t border-r border-slate-200 shadow-sm">
+        © 2025 Atlas Saar | Design: Vibe-Coding
     </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // ---------------------------------------------------------
-        // 1. DATEN SÄTZE
-        // ---------------------------------------------------------
+        // --- WELCOME SCREEN LOGIC ---
+        function closeWelcome() {
+            const overlay = document.getElementById('welcome-overlay');
+            overlay.classList.add('hidden-overlay');
+            setTimeout(() => {
+                map.flyTo([49.35, 7.00], 11, { duration: 2 });
+            }, 300);
+        }
 
-        // GRENZE (Basis für alle Layer)
+        // --- DATEN ---
+        
         const saarlandBorder = [
             [49.630, 6.970], [49.600, 7.100], [49.550, 7.200], [49.480, 7.340],
             [49.350, 7.420], [49.220, 7.300], [49.120, 7.180], [49.110, 7.040],
@@ -99,115 +168,98 @@
             [49.470, 6.360], [49.540, 6.480], [49.630, 6.970]
         ];
 
-        // LAYER 1: HISTORIE (Kohle & Stahl)
         const historyData = {
             mines: [
-                { name: "Grube Reden", coords: [49.3493, 7.1132], type: "Kohle", period: "1846-1995" },
-                { name: "Grube Göttelborn", coords: [49.3548, 7.0335], type: "Kohle", period: "1887-2000" },
-                { name: "Grube Camphausen", coords: [49.3065, 7.0074], type: "Kohle", period: "1871-1990" },
-                { name: "Grube Ensdorf", coords: [49.3089, 6.7725], type: "Kohle", period: "1833-2012" },
-                { name: "Grube Luisenthal", coords: [49.2477, 6.8938], type: "Kohle", period: "1820-2005" },
-                { name: "Grube Warndt", coords: [49.1864, 6.8097], type: "Kohle", period: "1963-2005" },
-                { name: "Grube Velsen", coords: [49.2219, 6.8363], type: "Kohle", period: "1899-2005" },
-                { name: "Grube Maybach", coords: [49.3205, 7.0632], type: "Kohle", period: "1873-1964" },
-                { name: "Grube Viktoria", coords: [49.2927, 6.8882], type: "Kohle", period: "1866-1963" },
-                { name: "Grube Von der Heydt", coords: [49.2688, 6.9575], type: "Kohle", period: "1850-1965" }
+                { name: "Grube Reden", coords: [49.3493, 7.1132], type: "Kohle", period: "1846-1995", desc: "Großbergwerk, heute 'Gondwana'." },
+                { name: "Grube Göttelborn", coords: [49.3548, 7.0335], type: "Kohle", period: "1887-2000", desc: "Weißer Riese, Förderturm IV." },
+                { name: "Grube Camphausen", coords: [49.3065, 7.0074], type: "Kohle", period: "1871-1990", desc: "Backstein-Expressionismus." },
+                { name: "Grube Ensdorf", coords: [49.3089, 6.7725], type: "Kohle", period: "1833-2012", desc: "Letztes aktives Bergwerk." },
+                { name: "Grube Luisenthal", coords: [49.2477, 6.8938], type: "Kohle", period: "1820-2005", desc: "Tiefstes Bergwerk der Saar." },
+                { name: "Grube Warndt", coords: [49.1864, 6.8097], type: "Kohle", period: "1963-2005", desc: "Modernste Anlage (60er Jahre)." },
+                { name: "Grube Velsen", coords: [49.2219, 6.8363], type: "Kohle", period: "1899-2005", desc: "Erlebnisbergwerk heute." },
+                { name: "Grube Maybach", coords: [49.3205, 7.0632], type: "Kohle", period: "1873-1964", desc: "Marie-Juchacz-Schacht." },
+                { name: "Grube Viktoria", coords: [49.2927, 6.8882], type: "Kohle", period: "1866-1963", desc: "Ehemaliges Zwangsarbeiter*innenlager." },
+                { name: "Grube Von der Heydt", coords: [49.2688, 6.9575], type: "Kohle", period: "1850-1965", desc: "Waldgrube mit Siedlung." }
             ],
             steel: [
-                { name: "Völklinger Hütte", coords: [49.2485, 6.8442], type: "Stahl", period: "UNESCO" },
-                { name: "Dillinger Hütte", coords: [49.3480, 6.7450], type: "Stahl", period: "Aktiv" },
-                { name: "Neunkircher Eisenwerk", coords: [49.3455, 7.1780], type: "Stahl", period: "Stillgelegt" },
-                { name: "Halberger Hütte", coords: [49.2180, 7.0300], type: "Stahl", period: "Aktiv" },
-                { name: "Burbacher Hütte", coords: [49.2420, 6.9350], type: "Stahl", period: "Aktiv" }
+                { name: "Völklinger Hütte", coords: [49.2485, 6.8442], type: "Stahl", period: "UNESCO", desc: "Weltkulturerbe seit 1994." },
+                { name: "Dillinger Hütte", coords: [49.3480, 6.7450], type: "Stahl", period: "Aktiv", desc: "Grobblech-Spezialist." },
+                { name: "Neunkircher Eisenwerk", coords: [49.3455, 7.1780], type: "Stahl", period: "Stillgelegt", desc: "Prägte das Stadtbild NK." },
+                { name: "Halberger Hütte", coords: [49.2180, 7.0300], type: "Stahl", period: "Aktiv", desc: "Gussrohre und Motorteile." },
+                { name: "Burbacher Hütte", coords: [49.2420, 6.9350], type: "Stahl", period: "Aktiv", desc: "Drahtstraße (Saarstahl)." }
             ],
-            rails: [
-                { name: "Ludwigsbahn (1852)", color: "#3b82f6", path: [[49.380, 7.350], [49.345, 7.180], [49.240, 7.000], [49.190, 6.890]] },
-                { name: "Nahetalbahn (1860)", color: "#10b981", path: [[49.550, 7.150], [49.450, 7.100], [49.350, 7.180], [49.260, 7.000]] }
-            ]
+            rails: [] // Leer lassen wie gewünscht
         };
 
-        // LAYER 2: URBANISIERUNG (Datenbasis 2023 - Detailliert)
         const urbanData = [
-            // Regionalverband Saarbrücken
-            { name: "Saarbrücken", coords: [49.2333, 7.0000], pop: 181900, desc: "Ballungszentrum" },
+            { name: "Saarbrücken", coords: [49.2333, 7.0000], pop: 181900, desc: "Landeshauptstadt & Zentrum" },
             { name: "Völklingen", coords: [49.2500, 6.8500], pop: 40000, desc: "Mittelstadt / Stahlstandort" },
-            { name: "Püttlingen", coords: [49.2900, 6.8900], pop: 18500, desc: "Köllertal" },
+            { name: "Püttlingen", coords: [49.2900, 6.8900], pop: 18500, desc: "Köllertal Zentrum" },
             { name: "Heusweiler", coords: [49.3400, 6.9300], pop: 18000, desc: "Marktort im Köllertal" },
             { name: "Sulzbach", coords: [49.3000, 7.0600], pop: 16000, desc: "Industriegeschichte" },
             { name: "Friedrichsthal", coords: [49.3250, 7.0950], pop: 10000, desc: "Ehem. Bergbau" },
             { name: "Quierschied", coords: [49.3250, 7.0500], pop: 13000, desc: "Ehem. Grubenstandort" },
             { name: "Kleinblittersdorf", coords: [49.1550, 7.0350], pop: 11000, desc: "Obere Saar" },
             { name: "Riegelsberg", coords: [49.3100, 6.9400], pop: 14500, desc: "Wohnort an Saarbahn" },
-            
-            // Kreis Neunkirchen
             { name: "Neunkirchen", coords: [49.3450, 7.1780], pop: 46900, desc: "Zweitgrößte Stadt" },
-            { name: "Eppelborn", coords: [49.4050, 6.9650], pop: 17000, desc: "Illtal" },
+            { name: "Eppelborn", coords: [49.4050, 6.9650], pop: 17000, desc: "Illtal Zentrum" },
             { name: "Illingen", coords: [49.3750, 7.0500], pop: 16500, desc: "Verkehrsknoten" },
             { name: "Merchweiler", coords: [49.3600, 7.0600], pop: 10000, desc: "Bergbautradition" },
             { name: "Ottweiler", coords: [49.4050, 7.1650], pop: 14500, desc: "Kreisstadt / Historisch" },
             { name: "Schiffweiler", coords: [49.3700, 7.1300], pop: 15500, desc: "Nahe Grube Reden" },
             { name: "Spiesen-Elversberg", coords: [49.3200, 7.1500], pop: 12800, desc: "Sport & Wohnen" },
-
-            // Saarpfalz-Kreis
             { name: "Homburg", coords: [49.3200, 7.3400], pop: 42000, desc: "Uniklinik & Industrie" },
-            { name: "St. Ingbert", coords: [49.2800, 7.1200], pop: 35500, desc: "Biosphäre" },
+            { name: "St. Ingbert", coords: [49.2800, 7.1200], pop: 35500, desc: "Biosphäre Bliesgau" },
             { name: "Blieskastel", coords: [49.2383, 7.2567], pop: 20500, desc: "Barockstadt" },
             { name: "Bexbach", coords: [49.3500, 7.2600], pop: 17500, desc: "Bergbaumuseum" },
             { name: "Mandelbachtal", coords: [49.1800, 7.1300], pop: 10500, desc: "Ländlich / Bliesgau" },
-
-            // Kreis Saarlouis
-            { name: "Saarlouis", coords: [49.3167, 6.7500], pop: 34500, desc: "Kreisstadt" },
+            { name: "Saarlouis", coords: [49.3167, 6.7500], pop: 34500, desc: "Festungsstadt" },
             { name: "Dillingen", coords: [49.3500, 6.7333], pop: 20000, desc: "Hüttenstadt" },
-            { name: "Lebach", coords: [49.4100, 6.9100], pop: 19000, desc: "Mittelpunkt des Saarlands" },
+            { name: "Lebach", coords: [49.4100, 6.9100], pop: 19000, desc: "Mittelpunkt" },
             { name: "Schmelz", coords: [49.4300, 6.8600], pop: 16000, desc: "Primsland" },
             { name: "Wadgassen", coords: [49.2700, 6.7900], pop: 17000, desc: "Outlet & Industrie" },
             { name: "Schwalbach", coords: [49.3000, 6.8300], pop: 17000, desc: "Wohnort" },
             { name: "Rehlingen-Siersburg", coords: [49.3500, 6.6800], pop: 14500, desc: "Niedtal" },
-            
-            // Kreis St. Wendel
-            { name: "St. Wendel", coords: [49.4667, 7.1667], pop: 25500, desc: "Wirtschaftszentrum Nord" },
+            { name: "St. Wendel", coords: [49.4667, 7.1667], pop: 25500, desc: "Wirtschaftszentrum" },
             { name: "Tholey", coords: [49.4800, 7.0300], pop: 12000, desc: "Schaumberg" },
-            { name: "Nohfelden", coords: [49.5800, 7.1500], pop: 10000, desc: "Bostalsee / Türkismühle" },
-
-            // Kreis Merzig-Wadern
+            { name: "Nohfelden", coords: [49.5800, 7.1500], pop: 10000, desc: "Bostalsee" },
             { name: "Merzig", coords: [49.4419, 6.6378], pop: 30000, desc: "Kreisstadt" },
             { name: "Losheim am See", coords: [49.5100, 6.7500], pop: 16000, desc: "Tourismus" },
             { name: "Beckingen", coords: [49.3800, 6.7000], pop: 15000, desc: "Untere Saar" },
-            { name: "Mettlach", coords: [49.4900, 6.5900], pop: 12000, desc: "Keramik (Villeroy & Boch)" }
+            { name: "Mettlach", coords: [49.4900, 6.5900], pop: 12000, desc: "Keramik (V&B)" }
         ];
 
-        // LAYER 3: VERKEHR HEUTE
         const transportData = [
-            { name: "RE 1 / RB 70/71 (Saartal)", desc: "Trier - Merzig - Saarbrücken - Homburg - Mannheim", color: "#db2777", weight: 5, path: [[49.600, 6.550], [49.490, 6.590], [49.441, 6.637], [49.350, 6.733], [49.316, 6.750], [49.250, 6.850], [49.233, 7.000], [49.280, 7.120], [49.320, 7.340], [49.380, 7.350]] },
-            { name: "RE 3 / RB 73 (Nahetal)", desc: "Saarbrücken - Neunkirchen - St. Wendel - Türkismühle - Mainz/Frankfurt", color: "#0ea5e9", weight: 4, path: [[49.233, 7.000], [49.300, 7.060], [49.345, 7.178], [49.405, 7.165], [49.466, 7.166], [49.580, 7.150], [49.630, 7.180]] },
-            { name: "RB 68 (Schwarzbachtal)", desc: "Saarbrücken - St. Ingbert - Zweibrücken/Pirmasens", color: "#2563eb", weight: 3, path: [[49.233, 7.000], [49.280, 7.120], [49.250, 7.250], [49.240, 7.350]] },
-            { name: "RB 72 (Fischbachtal)", desc: "Saarbrücken - Quierschied - Illingen - Lebach", color: "#8b5cf6", weight: 3, path: [[49.233, 7.000], [49.325, 7.050], [49.375, 7.050], [49.410, 6.910]] },
-            { name: "RB 77 (Niedtal)", desc: "Dillingen - Niedaltdorf", color: "#64748b", weight: 3, path: [[49.350, 6.733], [49.350, 6.600]] },
-            { name: "Saarbahn S1", desc: "Lebach - Heusweiler - Saarbrücken - Saargemünd", color: "#eab308", weight: 4, path: [[49.410, 6.910], [49.340, 6.930], [49.310, 6.940], [49.233, 7.000], [49.218, 7.030], [49.155, 7.035], [49.110, 7.080]] }
+            { name: "RE 1 / RB 70/71", desc: "Trier - SB - Homburg - Mannheim", color: "#db2777", weight: 5, path: [[49.600, 6.550], [49.490, 6.590], [49.441, 6.637], [49.350, 6.733], [49.316, 6.750], [49.250, 6.850], [49.233, 7.000], [49.280, 7.120], [49.320, 7.340], [49.380, 7.350]] },
+            { name: "RE 3 / RB 73", desc: "SB - Neunkirchen - Mainz", color: "#0ea5e9", weight: 4, path: [[49.233, 7.000], [49.300, 7.060], [49.345, 7.178], [49.405, 7.165], [49.466, 7.166], [49.580, 7.150], [49.630, 7.180]] },
+            { name: "RB 68", desc: "SB - St. Ingbert - Zweibrücken", color: "#2563eb", weight: 3, path: [[49.233, 7.000], [49.280, 7.120], [49.250, 7.250], [49.240, 7.350]] },
+            { name: "RB 72", desc: "SB - Illingen - Lebach", color: "#8b5cf6", weight: 3, path: [[49.233, 7.000], [49.325, 7.050], [49.375, 7.050], [49.410, 6.910]] },
+            { name: "RB 77", desc: "Dillingen - Niedaltdorf", color: "#64748b", weight: 3, path: [[49.350, 6.733], [49.350, 6.600]] },
+            { name: "Saarbahn S1", desc: "Lebach - SB - Saargemünd", color: "#eab308", weight: 4, path: [[49.410, 6.910], [49.340, 6.930], [49.310, 6.940], [49.233, 7.000], [49.218, 7.030], [49.155, 7.035], [49.110, 7.080]] }
         ];
 
         // ---------------------------------------------------------
-        // 2. KARTE INITIALISIEREN
+        // MAP SETUP
         // ---------------------------------------------------------
         
-        const map = L.map('map', { zoomControl: false }).setView([49.35, 7.00], 11);
+        const map = L.map('map', { zoomControl: false }).setView([49.38, 6.95], 10); 
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CARTO',
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
-            maxZoom: 19
+            maxZoom: 20
         }).addTo(map);
 
         let currentLayers = L.layerGroup().addTo(map);
         let borderLayer = L.layerGroup().addTo(map);
 
         L.polygon(saarlandBorder, {
-            color: '#cbd5e1', weight: 2, fill: false, dashArray: '4, 4'
+            color: '#64748b', weight: 1.5, fill: false, dashArray: '6, 6', opacity: 0.6
         }).addTo(borderLayer);
 
         // ---------------------------------------------------------
-        // 3. RENDER LOGIK
+        // HELPER & RENDERER
         // ---------------------------------------------------------
 
         function clearMap() {
@@ -217,22 +269,53 @@
 
         function createListItem(title, subtitle, iconClass, colorClass, onClick) {
             const div = document.createElement('div');
-            div.className = `p-3 rounded-lg bg-white border-l-4 ${colorClass} shadow-sm cursor-pointer hover:bg-slate-50 transition-all flex items-center gap-3`;
+            div.className = `group p-3.5 rounded-xl bg-white border border-slate-100 hover:border-slate-300 shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 flex items-center gap-3.5`;
+            
+            const dotColor = colorClass.replace('border-', 'bg-').replace('text-', 'bg-'); 
+            
             div.innerHTML = `
-                <div class="text-2xl text-slate-400"><i class="${iconClass}"></i></div>
-                <div>
-                    <div class="font-bold text-sm text-slate-800">${title}</div>
-                    <div class="text-xs text-slate-500">${subtitle}</div>
+                <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform text-xl text-slate-500 group-hover:text-slate-800">
+                    <i class="${iconClass}"></i>
                 </div>
+                <div class="flex-1">
+                    <div class="font-bold text-sm text-slate-800 group-hover:text-blue-600 transition-colors">${title}</div>
+                    <div class="text-xs text-slate-500 font-medium">${subtitle}</div>
+                </div>
+                <div class="w-2 h-2 rounded-full ${dotColor}"></div>
             `;
             div.addEventListener('click', onClick);
             return div;
         }
 
-        // SVG Icons für garantierte Darstellung (anstatt Font Icons)
-        const getPinIcon = (color) => L.divIcon({
+        // --- ICONS ---
+
+        // Kohle-Icon (G) - Änderung von B zu G
+        const getMineIcon = (color) => L.divIcon({
             className: 'custom-div-icon',
-            html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 drop-shadow-lg"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>`,
+            html: `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 drop-shadow-lg">
+                    <!-- Pin Shape -->
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <!-- Text G (Inside) -->
+                    <text x="12" y="15" text-anchor="middle" fill="white" stroke="none" font-size="10" font-weight="900" font-family="Inter, sans-serif">G</text>
+                </svg>
+            `,
+            iconSize: [40, 40],
+            iconAnchor: [20, 40],
+            popupAnchor: [0, -40]
+        });
+
+        // Hüttenwerk Icon (H)
+        const getSteelIcon = (color) => L.divIcon({
+            className: 'custom-div-icon',
+            html: `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 drop-shadow-lg">
+                    <!-- Pin Shape -->
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <!-- Text H (Inside) -->
+                    <text x="12" y="15" text-anchor="middle" fill="white" stroke="none" font-size="10" font-weight="900" font-family="Inter, sans-serif">H</text>
+                </svg>
+            `,
             iconSize: [40, 40],
             iconAnchor: [20, 40],
             popupAnchor: [0, -40]
@@ -240,104 +323,90 @@
 
         function renderHistory() {
             document.getElementById('sidebar-title').innerText = "Industriezeitalter";
-            document.getElementById('sidebar-desc').innerText = "Die Ära von Kohle & Stahl (19. & 20. Jh.)";
+            document.getElementById('sidebar-desc').innerText = "Kohle & Stahl (19. & 20. Jh.)";
             const list = document.getElementById('sidebar-content');
 
-            // Bergwerke (Rot)
             historyData.mines.forEach(mine => {
-                const marker = L.marker(mine.coords, { icon: getPinIcon('#dc2626') }).addTo(currentLayers);
-                marker.bindPopup(`<b>${mine.name}</b><br>Typ: ${mine.type}<br>Betrieb: ${mine.period}`);
-                
-                list.appendChild(createListItem(mine.name, `Bergbau (${mine.period})`, "ph-pick-axe", "border-red-500", () => {
-                    map.flyTo(mine.coords, 13);
-                    marker.openPopup();
-                }));
+                const marker = L.marker(mine.coords, { icon: getMineIcon('#ef4444') }).addTo(currentLayers);
+                marker.bindPopup(`
+                    <div class="p-2">
+                        <b class="text-red-600 block text-base">${mine.name}</b>
+                        <div class="text-xs text-slate-600 mt-1 mb-2 leading-snug">${mine.desc}</div>
+                        <span class="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded border border-red-100">Betrieb: ${mine.period}</span>
+                    </div>
+                `);
+                list.appendChild(createListItem(mine.name, mine.desc, "ph-pick-axe", "bg-red-500", () => { map.flyTo(mine.coords, 13); marker.openPopup(); }));
             });
 
-            // Stahlwerke (Grau/Slate)
             historyData.steel.forEach(steel => {
-                const marker = L.marker(steel.coords, { icon: getPinIcon('#475569') }).addTo(currentLayers);
-                marker.bindPopup(`<b>${steel.name}</b><br>${steel.type}`);
-                list.appendChild(createListItem(steel.name, "Hüttenwerk", "ph-factory", "border-slate-600", () => {
-                    map.flyTo(steel.coords, 13);
-                    marker.openPopup();
-                }));
-            });
-
-            // Alte Bahnen
-            historyData.rails.forEach(rail => {
-                L.polyline(rail.path, { color: rail.color, weight: 3, dashArray: '5, 10', opacity: 0.6 }).addTo(currentLayers);
+                const marker = L.marker(steel.coords, { icon: getSteelIcon('#475569') }).addTo(currentLayers);
+                marker.bindPopup(`
+                    <div class="p-2">
+                        <b class="text-slate-700 block text-base">${steel.name}</b>
+                        <div class="text-xs text-slate-600 mt-1 mb-2 leading-snug">${steel.desc}</div>
+                        <span class="bg-slate-50 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">${steel.period}</span>
+                    </div>
+                `);
+                list.appendChild(createListItem(steel.name, steel.desc, "ph-factory", "bg-slate-600", () => { map.flyTo(steel.coords, 13); marker.openPopup(); }));
             });
         }
 
         function renderUrban() {
-            document.getElementById('sidebar-title').innerText = "Bevölkerung (Gemeinden)";
-            document.getElementById('sidebar-desc').innerText = "Verteilung nach Gemeinden (Stand ~2023)";
+            document.getElementById('sidebar-title').innerText = "Bevölkerung";
+            document.getElementById('sidebar-desc').innerText = "Nach Gemeinden (Stand ~2023)";
             const list = document.getElementById('sidebar-content');
             
             const infoBox = document.createElement('div');
-            infoBox.className = "p-3 bg-blue-50 text-blue-800 text-xs rounded mb-4 border border-blue-100";
-            infoBox.innerHTML = "<b>Analyse:</b> Die dichte Besiedlung entlang der Verkehrsachsen und des alten Kohlegürtels ist deutlich erkennbar.";
+            infoBox.className = "p-4 bg-blue-50/50 text-blue-900 text-xs rounded-xl mb-4 border border-blue-100 shadow-sm leading-relaxed";
+            infoBox.innerHTML = "<strong class='block mb-1 font-bold'>Analyse</strong>Die Karte zeigt deutlich die Korrelation zwischen historischer Industrie und heutiger Siedlungsdichte im Sulzbach- und Saartal.";
             list.appendChild(infoBox);
 
             urbanData.forEach(city => {
-                // Radius vergrößert (Faktor 10 für bessere Sichtbarkeit)
                 const radius = Math.sqrt(city.pop) * 10; 
-                
                 let color = city.pop > 100000 ? '#7e22ce' : (city.pop > 30000 ? '#a855f7' : '#d8b4fe');
 
                 const circle = L.circle(city.coords, {
-                    color: color,
-                    fillColor: color,
-                    fillOpacity: 0.4,
-                    radius: radius,
-                    weight: 1
+                    color: color, fillColor: color, fillOpacity: 0.4, radius: radius, weight: 1
                 }).addTo(currentLayers);
 
                 circle.bindPopup(`
-                    <div class="text-center">
-                        <b class="text-lg">${city.name}</b><br>
-                        <span class="text-purple-700 font-bold">${city.pop.toLocaleString()} EW</span><br>
-                        <span class="text-xs text-gray-500">${city.desc}</span>
+                    <div class="text-center p-1">
+                        <b class="text-lg block mb-1">${city.name}</b>
+                        <div class="text-xs text-slate-500 mb-2 block">${city.desc}</div>
+                        <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs font-bold">${city.pop.toLocaleString()} EW</span>
                     </div>
                 `);
-
-                list.appendChild(createListItem(city.name, `${city.pop.toLocaleString()} EW`, "ph-buildings", "border-purple-500", () => {
-                    map.flyTo(city.coords, 13);
-                    circle.openPopup();
-                }));
+                list.appendChild(createListItem(city.name, `${city.pop.toLocaleString()} EW`, "ph-buildings", "bg-purple-500", () => { map.flyTo(city.coords, 13); circle.openPopup(); }));
             });
         }
 
         function renderTransport() {
-            document.getElementById('sidebar-title').innerText = "Aktives Schienennetz";
-            document.getElementById('sidebar-desc').innerText = "RE/RB Linien & Saarbahn";
+            document.getElementById('sidebar-title').innerText = "Schienennetz";
+            document.getElementById('sidebar-desc').innerText = "Aktive RE/RB & Saarbahn Linien";
             const list = document.getElementById('sidebar-content');
 
             transportData.forEach(route => {
                 const poly = L.polyline(route.path, { 
-                    color: route.color, 
-                    weight: route.weight, 
-                    opacity: 0.8,
-                    lineCap: 'round'
+                    color: route.color, weight: route.weight, opacity: 0.8, lineCap: 'round'
                 }).addTo(currentLayers);
                 
-                poly.bindTooltip(route.name, {sticky: true});
+                poly.bindTooltip(route.name, {sticky: true, className: 'font-bold bg-white border-0 shadow-lg px-2 py-1 rounded'});
+
+                const icon = route.name.includes("Saarbahn") ? "ph-tram" : "ph-train";
 
                 const item = document.createElement('div');
-                item.className = "p-3 rounded-lg bg-white border-l-4 shadow-sm cursor-pointer hover:bg-slate-50 transition-all mb-2";
-                item.style.borderLeftColor = route.color;
+                item.className = `group p-3.5 rounded-xl bg-white border border-slate-100 hover:border-slate-300 shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 flex items-center gap-3.5`;
                 item.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-sm">${route.name}</span>
-                        <i class="ph ph-train text-slate-400"></i>
+                     <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:scale-110 transition-transform text-xl text-slate-500 group-hover:text-slate-800">
+                        <i class="ph ${icon}"></i>
                     </div>
-                    <div class="text-xs text-slate-500 mt-1">${route.desc}</div>
+                    <div class="flex-1">
+                        <div class="font-bold text-sm text-slate-800 group-hover:text-blue-600 transition-colors">${route.name}</div>
+                        <div class="text-xs text-slate-500 font-medium truncate max-w-[180px]">${route.desc}</div>
+                    </div>
+                    <div class="w-3 h-3 rounded-full" style="background-color: ${route.color}"></div>
                 `;
-                item.addEventListener('click', () => {
-                    map.fitBounds(poly.getBounds(), {padding: [50, 50]});
-                    poly.openTooltip();
-                });
+                item.addEventListener('click', () => { map.fitBounds(poly.getBounds(), {padding: [50, 50]}); poly.openTooltip(); });
                 list.appendChild(item);
             });
 
@@ -345,7 +414,7 @@
             L.marker(hbfCoords, {
                 icon: L.divIcon({
                     className: 'custom-div-icon',
-                    html: `<div class="bg-white text-slate-800 border-2 border-slate-800 rounded font-bold text-[10px] px-1 shadow-lg text-center leading-tight">HBF<br>SB</div>`,
+                    html: `<div class="bg-white text-slate-900 border-2 border-slate-900 rounded-lg font-extrabold text-[10px] px-1.5 py-0.5 shadow-xl text-center leading-tight transform hover:scale-110 transition-transform">HBF<br>SB</div>`,
                     iconSize: [30, 24]
                 })
             }).addTo(currentLayers);
@@ -353,13 +422,13 @@
 
         function switchMode(mode) {
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active', 'bg-slate-800', 'text-white');
-                btn.classList.add('text-slate-700'); 
+                btn.classList.remove('active');
+                btn.classList.add('text-slate-600', 'bg-transparent'); 
             });
             
             const activeBtn = document.getElementById(`btn-${mode}`);
             activeBtn.classList.add('active');
-            activeBtn.classList.remove('text-slate-700');
+            activeBtn.classList.remove('text-slate-600', 'bg-transparent');
 
             clearMap();
 
@@ -368,8 +437,10 @@
             if (mode === 'transport') renderTransport();
         }
 
-        switchMode('history');
-
+        // Init
+        setTimeout(() => {
+            switchMode('history');
+        }, 100);
     </script>
 </body>
 </html>
