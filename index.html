@@ -12,51 +12,151 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        #map { height: 100vh; width: 100%; z-index: 1; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        #map { height: 100%; width: 100%; z-index: 1; }
         
-        /* Custom Info Overlay Style */
-        .info-panel {
+        /* Glasmorphismus Effekt */
+        .glass-panel {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
         
-        /* Animation für die Marker */
-        .leaflet-marker-icon {
-            transition: transform 0.3s ease;
-        }
-        .leaflet-marker-icon:hover {
-            transform: scale(1.2) translateY(-5px);
+        /* Scrollbar hübscher machen */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .mine-item:hover {
+            background-color: #fef2f2; /* rötlicher hintergrund bei hover */
+            border-left-color: #dc2626;
         }
     </style>
 </head>
-<body class="relative">
+<body class="relative h-screen w-screen">
 
-    <!-- Overlay Header -->
-    <div class="absolute top-4 left-4 z-[1000] info-panel p-5 rounded-xl shadow-2xl max-w-sm border-l-4 border-red-600">
+    <!-- Overlay Header (Links oben) -->
+    <div class="absolute top-4 left-4 z-[1000] glass-panel p-5 rounded-xl shadow-2xl max-w-xs border-l-4 border-red-600 hidden md:block">
         <h1 class="text-2xl font-bold text-gray-800 mb-2">Das schwarze Gold</h1>
-        <p class="text-sm text-gray-600">Eine historische Reise zu den 10 bedeutendsten ehemaligen Steinkohlebergwerken des Saarlandes (18.-20. Jh.).</p>
-        <div class="mt-3 text-xs text-gray-500 italic">Klicke auf eine rote Nadel für Details.</div>
+        <p class="text-sm text-gray-600">Eine historische Reise zu den 10 bedeutendsten ehemaligen Steinkohlebergwerken des Saarlandes.</p>
+    </div>
+
+    <!-- Mobile Header (Nur sichtbar auf kleinen Bildschirmen) -->
+    <div class="absolute top-0 left-0 right-0 z-[1000] glass-panel p-3 border-b border-gray-200 md:hidden">
+        <h1 class="text-lg font-bold text-gray-800 text-center">Saarland Bergbau</h1>
+    </div>
+
+    <!-- Sidebar Liste (Rechts) -->
+    <div class="absolute top-16 md:top-4 right-4 bottom-12 width-full md:w-80 z-[1000] flex flex-col pointer-events-none">
+        <div class="glass-panel rounded-xl shadow-2xl flex flex-col max-h-full pointer-events-auto overflow-hidden">
+            <div class="p-4 bg-gray-50 border-b border-gray-200">
+                <h2 class="font-bold text-gray-700">Bergwerke Liste</h2>
+                <p class="text-xs text-gray-500">Wähle einen Ort zum Anfliegen</p>
+            </div>
+            <div id="mines-list" class="overflow-y-auto p-2 space-y-2">
+                <!-- Hier werden die Einträge per Javascript eingefügt -->
+            </div>
+        </div>
     </div>
 
     <!-- Map Container -->
     <div id="map"></div>
 
+    <!-- Footer -->
+    <div class="absolute bottom-0 left-0 right-0 z-[1000] bg-gray-900 text-white text-xs py-2 px-4 text-center opacity-90">
+        &copy; 2024 Historischer Atlas Saarland | Entwickelt mit Vibe-Coding & Leaflet
+    </div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // 1. Karte initialisieren (Zentriert auf das Saarland)
-        const map = L.map('map').setView([49.35, 6.95], 11);
+        // --- DATEN ---
+        const mines = [
+            {
+                id: 1,
+                name: "Grube Reden",
+                location: "Schiffweiler",
+                coords: [49.3493, 7.1132],
+                desc: "Bekannt für den 'Gondwana - Das Praehistorium' Park heute. Betriebsende: 1995."
+            },
+            {
+                id: 2,
+                name: "Grube Göttelborn",
+                location: "Quierschied",
+                coords: [49.3548, 7.0335],
+                desc: "Eines der modernsten Bergwerke Europas bis zur Stilllegung im Jahr 2000. Markanter weißer Förderturm."
+            },
+            {
+                id: 3,
+                name: "Grube Camphausen",
+                location: "Quierschied",
+                coords: [49.3065, 7.0074],
+                desc: "Markant durch den Förderturm im Backstein-Expressionismus. Betriebsende: 1990."
+            },
+            {
+                id: 4,
+                name: "Grube Ensdorf",
+                location: "Ensdorf",
+                coords: [49.3089, 6.7725],
+                desc: "Hier wurde 2012 die letzte Kohle im Saarland gefördert. Bekannt für das 'Saarpolygon'."
+            },
+            {
+                id: 5,
+                name: "Grube Luisenthal",
+                location: "Völklingen",
+                coords: [49.2477, 6.8938],
+                desc: "Traurige Bekanntheit durch das schwere Grubenunglück 1962. Betriebsende: 2005."
+            },
+            {
+                id: 6,
+                name: "Grube Warndt",
+                location: "Großrosseln",
+                coords: [49.1864, 6.8097],
+                desc: "Ein sehr junges Bergwerk (Förderbeginn erst 1963). Verbundbergwerk mit Luisenthal."
+            },
+            {
+                id: 7,
+                name: "Grube Velsen",
+                location: "Großrosseln",
+                coords: [49.2219, 6.8363],
+                desc: "Heute ein Erlebnisbergwerk. Wichtig für die Kaffeeküche und historische Architektur."
+            },
+            {
+                id: 8,
+                name: "Grube Itzenplitz",
+                location: "Heiligenwald",
+                coords: [49.3542, 7.0869],
+                desc: "Bekannt durch die malerische Itzenplitzer Weiheranlage und das älteste erhaltene Fördergerüst."
+            },
+            {
+                id: 9,
+                name: "Grube Dechen",
+                location: "Neunkirchen",
+                coords: [49.3378, 7.1722],
+                desc: "Tiefbau begann hier schon im frühen 19. Jahrhundert. Teil der Neunkircher Eisenwerk-Geschichte."
+            },
+            {
+                id: 10,
+                name: "Grube Frankenholz",
+                location: "Bexbach",
+                coords: [49.3702, 7.2405],
+                desc: "Einst die tiefste Grube im Saarrevier. Betriebsende bereits 1959."
+            }
+        ];
 
-        // 2. Karten-Layer hinzufügen (OpenStreetMap)
+        // --- KARTE INITIALISIEREN ---
+        const map = L.map('map', { zoomControl: false }).setView([49.35, 6.95], 11);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
             subdomains: 'abcd',
             maxZoom: 19
         }).addTo(map);
 
-        // 3. Definition des roten Icons (SVG für scharfe Darstellung)
+        // --- ICONS ---
         const redIcon = L.divIcon({
             className: 'custom-div-icon',
             html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#dc2626" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 drop-shadow-lg filter"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3" fill="white"></circle></svg>`,
@@ -65,74 +165,17 @@
             popupAnchor: [0, -40]
         });
 
-        // 4. Die Daten der Bergwerke
-        const mines = [
-            {
-                name: "Grube Reden",
-                location: "Schiffweiler",
-                coords: [49.3493, 7.1132],
-                desc: "Bekannt für den 'Gondwana - Das Praehistorium' Park heute. Betriebsende: 1995."
-            },
-            {
-                name: "Grube Göttelborn",
-                location: "Quierschied",
-                coords: [49.3548, 7.0335],
-                desc: "Eines der modernsten Bergwerke Europas bis zur Stilllegung im Jahr 2000. Markanter weißer Förderturm."
-            },
-            {
-                name: "Grube Camphausen",
-                location: "Quierschied",
-                coords: [49.3065, 7.0074],
-                desc: "Markant durch den Förderturm im Backstein-Expressionismus. Betriebsende: 1990."
-            },
-            {
-                name: "Grube Ensdorf",
-                location: "Ensdorf",
-                coords: [49.3089, 6.7725],
-                desc: "Hier wurde 2012 die letzte Kohle im Saarland gefördert. Bekannt für das 'Saarpolygon'."
-            },
-            {
-                name: "Grube Luisenthal",
-                location: "Völklingen",
-                coords: [49.2477, 6.8938],
-                desc: "Traurige Bekanntheit durch das schwere Grubenunglück 1962. Betriebsende: 2005."
-            },
-            {
-                name: "Grube Warndt",
-                location: "Großrosseln",
-                coords: [49.1864, 6.8097],
-                desc: "Ein sehr junges Bergwerk (Förderbeginn erst 1963). Verbundbergwerk mit Luisenthal."
-            },
-            {
-                name: "Grube Velsen",
-                location: "Großrosseln",
-                coords: [49.2219, 6.8363],
-                desc: "Heute ein Erlebnisbergwerk. Wichtig für die Kaffeeküche und historische Architektur."
-            },
-            {
-                name: "Grube Itzenplitz",
-                location: "Heiligenwald",
-                coords: [49.3542, 7.0869],
-                desc: "Bekannt durch die malerische Itzenplitzer Weiheranlage und das älteste erhaltene Fördergerüst."
-            },
-            {
-                name: "Grube Dechen",
-                location: "Neunkirchen",
-                coords: [49.3378, 7.1722],
-                desc: "Tiefbau begann hier schon im frühen 19. Jahrhundert. Teil der Neunkircher Eisenwerk-Geschichte."
-            },
-            {
-                name: "Grube Frankenholz",
-                location: "Bexbach",
-                coords: [49.3702, 7.2405],
-                desc: "Einst die tiefste Grube im Saarrevier. Betriebsende bereits 1959."
-            }
-        ];
+        // Globales Objekt zum Speichern der Marker, um sie später anzusteuern
+        const markers = {};
 
-        // 5. Marker auf die Karte setzen
+        // --- LOGIK ---
+        const listContainer = document.getElementById('mines-list');
+
         mines.forEach(mine => {
+            // 1. Marker auf Karte
             const marker = L.marker(mine.coords, {icon: redIcon}).addTo(map);
-            
+            markers[mine.id] = marker; // Marker speichern
+
             const popupContent = `
                 <div class="p-1 min-w-[200px]">
                     <h3 class="font-bold text-lg text-red-700 mb-1">${mine.name}</h3>
@@ -140,8 +183,29 @@
                     <p class="text-sm text-gray-700 leading-snug">${mine.desc}</p>
                 </div>
             `;
-            
             marker.bindPopup(popupContent);
+
+            // 2. Eintrag in die Liste (HTML generieren)
+            const listItem = document.createElement('div');
+            listItem.className = 'mine-item p-3 rounded-lg cursor-pointer transition-all border-l-4 border-transparent bg-white shadow-sm mb-2';
+            listItem.innerHTML = `
+                <h4 class="font-bold text-gray-800 text-sm">${mine.name}</h4>
+                <span class="text-xs text-gray-500">${mine.location}</span>
+            `;
+
+            // 3. Interaktion: Klick auf Liste bewegt Karte
+            listItem.addEventListener('click', () => {
+                // Sanfter Flug zur Position
+                map.flyTo(mine.coords, 14, {
+                    duration: 1.5 // Dauer des Flugs in Sekunden
+                });
+                // Popup öffnen, sobald der Flug ankommt
+                setTimeout(() => {
+                    markers[mine.id].openPopup();
+                }, 1500);
+            });
+
+            listContainer.appendChild(listItem);
         });
 
     </script>
