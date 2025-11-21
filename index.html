@@ -100,7 +100,7 @@
 </head>
 <body class="relative h-screen w-screen text-slate-800">
 
-    <!-- WELCOME OVERLAY -->
+    <!-- WELCOME OVERLAY (Text angepasst) -->
     <div id="welcome-overlay" class="absolute inset-0 z-[9999] bg-slate-900/95 backdrop-blur-md flex items-center justify-center text-white p-6">
         <div class="max-w-3xl text-center space-y-8 animate-fade-in-up">
             <div class="inline-block p-4 bg-white/5 rounded-full mb-2 border border-white/10">
@@ -112,8 +112,9 @@
                 <div class="h-1 w-24 bg-blue-500 mx-auto rounded-full opacity-80"></div>
             </div>
 
+            <!-- NEUE FRAGE -->
             <p class="text-xl md:text-2xl text-slate-300 leading-relaxed font-light max-w-2xl mx-auto">
-                Welchen Einfluss hat die <span class="text-red-400 font-medium">Schwerindustrie</span> des Saarlandes im Laufe der Zeit auf das <span class="text-blue-400 font-medium">heutige Saarland</span>?
+                Wie hat die Ära der <span class="text-red-400 font-medium">Schwerindustrie</span> das Gesicht des <span class="text-blue-400 font-medium">heutigen Saarlandes</span> geformt?
             </p>
             
             <button onclick="closeWelcome()" class="mt-10 px-10 py-4 bg-white text-slate-900 rounded-full font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:bg-blue-50 hover:scale-105 transition-all transform flex items-center gap-2 mx-auto">
@@ -472,7 +473,7 @@
                     desc: "Im Warndt gelegen, nah beim Jagdschloss Karlsbrunn. Nutzte die reichen Holzvorkommen des Warndtwaldes." 
                 },
                 { 
-                    id: "s17", name: "Hüttigweiler", coords: [49.3800, 7.0500], type: "Eisen", period: "Mittelalter", 
+                    id: "s17", name: "Hütteweiler", coords: [49.3800, 7.0500], type: "Eisen", period: "Mittelalter", 
                     desc: "Der Ortsname bei Illingen zeugt von sehr alter Verhüttungstradition in dieser Gegend." 
                 },
                 { 
@@ -571,6 +572,7 @@
         function expandSidebarItem(id) {
             const contentDiv = document.getElementById(`details-${id}`);
             if (contentDiv) {
+                // Alle anderen schließen (optional, aber übersichtlicher)
                 document.querySelectorAll('.details-content').forEach(el => {
                     if(el.id !== `details-${id}`) el.classList.remove('open');
                 });
