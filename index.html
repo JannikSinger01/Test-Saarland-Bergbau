@@ -60,22 +60,20 @@
             transform: translateY(-1px);
         }
 
-        /* MARKER STYLE */
-        .leaflet-marker-icon {
-            /* Statisch */
-        }
-
-        /* LEAFLET POPUP */
+        /* LEAFLET POPUP ANPASSUNG FÜR BILDER */
         .leaflet-popup-content-wrapper { 
             border-radius: 12px; 
             padding: 0; 
+            overflow: hidden; /* Wichtig damit Bilder nicht überstehen */
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
             font-family: 'Inter', sans-serif;
         }
-        .leaflet-popup-content { margin: 0 !important; min-width: 260px; }
+        .leaflet-popup-content { margin: 0 !important; width: 280px !important; }
         .leaflet-container a.leaflet-popup-close-button {
-            color: #64748b;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
             padding: 8px;
+            z-index: 10;
         }
 
         /* WELCOME OVERLAY */
@@ -112,8 +110,9 @@
 
     <!-- TOP NAVIGATION -->
     <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] glass-panel rounded-full p-1.5 flex shadow-xl max-w-[95%] overflow-x-auto border border-white/40">
+        <!-- NAME GEÄNDERT -->
         <button onclick="switchMode('history')" id="btn-history" class="tab-btn active px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 whitespace-nowrap">
-            <i class="ph-fill ph-factory text-lg"></i> Historie
+            <i class="ph-fill ph-factory text-lg"></i> Berg- und Stahlbau
         </button>
         <button onclick="switchMode('urban')" id="btn-urban" class="tab-btn px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 whitespace-nowrap">
             <i class="ph-fill ph-buildings text-lg"></i> Urbanisierung
@@ -170,25 +169,67 @@
 
         const historyData = {
             mines: [
-                { name: "Grube Reden", coords: [49.3493, 7.1132], type: "Kohle", period: "1846-1995", desc: "Großbergwerk, heute 'Gondwana'." },
-                { name: "Grube Göttelborn", coords: [49.3548, 7.0335], type: "Kohle", period: "1887-2000", desc: "Weißer Riese, Förderturm IV." },
-                { name: "Grube Camphausen", coords: [49.3065, 7.0074], type: "Kohle", period: "1871-1990", desc: "Grube mit Expressionistischen Nuencen." },
-                { name: "Grube Ensdorf", coords: [49.3089, 6.7725], type: "Kohle", period: "1833-2012", desc: "Letztes aktives Bergwerk." },
-                { name: "Grube Luisenthal", coords: [49.2477, 6.8938], type: "Kohle", period: "1820-2005", desc: "Tiefstes Bergwerk der Saar." },
-                { name: "Grube Warndt", coords: [49.1864, 6.8097], type: "Kohle", period: "1963-2005", desc: "Modernste Anlage (60er Jahre)." },
-                { name: "Grube Velsen", coords: [49.2219, 6.8363], type: "Kohle", period: "1899-2005", desc: "Erlebnisbergwerk heute." },
-                { name: "Grube Maybach", coords: [49.3205, 7.0632], type: "Kohle", period: "1873-1964", desc: "Marie-Juchacz-Schacht." },
-                { name: "Grube Viktoria", coords: [49.2927, 6.8882], type: "Kohle", period: "1866-1963", desc: "Ehemaliges Zwangsarbeiter*innenlager." },
-                { name: "Grube Von der Heydt", coords: [49.2688, 6.9575], type: "Kohle", period: "1850-1965", desc: "Waldgrube mit Siedlung." }
+                // -- GROSSBERGWERKE STEINKOHLE --
+                { name: "Bergwerk Saar / Ensdorf", coords: [49.3188, 6.7780], type: "Kohle", period: "1833-2012", desc: "Letztes aktives Bergwerk (Duhamel).", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Saarpolygon_auf_der_Bergehalde_in_Ensdorf.jpg/640px-Saarpolygon_auf_der_Bergehalde_in_Ensdorf.jpg" },
+                { name: "Grube Göttelborn", coords: [49.3548, 7.0335], type: "Kohle", period: "1887-2000", desc: "Weißer Riese, Schacht IV.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/G%C3%B6ttelborn_Schacht_4.jpg/640px-G%C3%B6ttelborn_Schacht_4.jpg" },
+                { name: "Grube Reden", coords: [49.3493, 7.1132], type: "Kohle", period: "1846-1995", desc: "Heute Gondwana - Das Praehistorium.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Grube_Reden_Bildstockstrasse.jpg/640px-Grube_Reden_Bildstockstrasse.jpg" },
+                { name: "Grube Camphausen", coords: [49.3065, 7.0074], type: "Kohle", period: "1871-1990", desc: "Backstein-Expressionismus (Hammerkopfturm).", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/F%C3%B6rderturm_Grube_Camphausen_IV.jpg/640px-F%C3%B6rderturm_Grube_Camphausen_IV.jpg" },
+                { name: "Grube Luisenthal", coords: [49.2477, 6.8938], type: "Kohle", period: "1820-2005", desc: "Tiefstes Bergwerk an der Saar.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Luisenthal" },
+                { name: "Grube Warndt", coords: [49.1864, 6.8097], type: "Kohle", period: "1963-2005", desc: "Jüngstes Großbergwerk im Warndt.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Warndt" },
+                { name: "Grube Velsen", coords: [49.2219, 6.8363], type: "Kohle", period: "1899-2005", desc: "Erlebnisbergwerk Velsen.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Velsen" },
+                { name: "Grube Itzenplitz", coords: [49.3542, 7.0869], type: "Kohle", period: "1856-1960", desc: "Ältestes Fördergerüst im Heiligenwald.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Grube_Itzenplitz_2010.jpg/640px-Grube_Itzenplitz_2010.jpg" },
+                { name: "Grube Dechen", coords: [49.3378, 7.1722], type: "Kohle", period: "1854-1968", desc: "Zulieferer für Neunkircher Hütte.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Dechen" },
+                { name: "Grube Heinitz", coords: [49.3300, 7.1300], type: "Kohle", period: "1847-1964", desc: "Traditionsreiche Grube bei Neunkirchen.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Heinitz" },
+                { name: "Grube König", coords: [49.3450, 7.1750], type: "Kohle", period: "1820-1968", desc: "Zentral für die Entwicklung Neunkirchens.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+K%C3%B6nig" },
+                { name: "Grube Frankenholz", coords: [49.3702, 7.2405], type: "Kohle", period: "1879-1959", desc: "Einst tiefste Grube Bayerns (Pfalz).", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Frankenholz" },
+                { name: "Grube St. Ingbert", coords: [49.2830, 7.1180], type: "Kohle", period: "1852-1959", desc: "Rischbachstollen (Besucherbergwerk).", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Besucherbergwerk_Rischbachstollen.jpg/640px-Besucherbergwerk_Rischbachstollen.jpg" },
+                { name: "Grube Maybach", coords: [49.3205, 7.0632], type: "Kohle", period: "1873-1964", desc: "Standort des Marie-Juchacz-Schachts.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Maybach" },
+                { name: "Grube Viktoria", coords: [49.2927, 6.8882], type: "Kohle", period: "1866-1963", desc: "Hauptgrube im Köllertal (Püttlingen).", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Viktoria" },
+                { name: "Grube Von der Heydt", coords: [49.2688, 6.9575], type: "Kohle", period: "1850-1965", desc: "Idyllische Waldgrube mit Siedlung.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Von-der-Heydt-Schacht.jpg/640px-Von-der-Heydt-Schacht.jpg" },
+                { name: "Grube Jägersfreude", coords: [49.2610, 7.0050], type: "Kohle", period: "1856-1968", desc: "Direkt an der Bahnlinie Saarbrücken.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+J%C3%A4gersfreude" },
+                { name: "Grube Kohlwald", coords: [49.3680, 7.1980], type: "Kohle", period: "1842-1966", desc: "Grenzgrube bei Wiebelskirchen.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Kohlwald" },
+                { name: "Grube Hirschbach", coords: [49.2850, 7.0450], type: "Kohle", period: "1816-1950", desc: "Dudweiler / Naherholungsgebiet.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Hirschbach" },
+                
+                // -- WEITERE HISTORISCHE STANDORTE --
+                { name: "Grube Dilsburg", coords: [49.3350, 6.9350], type: "Kohle", period: "1911-1931", desc: "Heusweiler, Nebenanlage von Göttelborn.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Dilsburg" },
+                { name: "Grube Griesborn", coords: [49.2950, 6.7990], type: "Kohle", period: "1857-1950", desc: "Schwalbach, Eisenbahnschacht.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Griesborn" },
+                { name: "Grube Altenwald", coords: [49.3100, 7.0800], type: "Kohle", period: "1851-1973", desc: "Sulzbach, enge Verbindung zu Hütte.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Altenwald" },
+                { name: "Grube Brefeld", coords: [49.3200, 7.0800], type: "Kohle", period: "1872-1967", desc: "Bei Sulzbach/Fischbach.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Brefeld" },
+                { name: "Grube Nordfeld", coords: [49.3800, 7.2500], type: "Kohle", period: "1889-1905", desc: "Waldmohr/Homburg Grenze.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Nordfeld" },
+                { name: "Grube Labach (A. Schäfer)", coords: [49.3800, 6.9000], type: "Kohle", period: "1962-2000", desc: "Privatgrube Dr. Arnold Schäfer.", img: "https://placehold.co/600x300/ef4444/FFF?text=Grube+Labach" },
+
+                // -- NICHT-KOHLE BERGWERKE (Erz/Kalk) --
+                { name: "Emilianusstollen", coords: [49.3000, 6.7000], type: "Kupfer", period: "Römerzeit", desc: "Antikes Kupferbergwerk (St. Barbara).", img: "https://placehold.co/600x300/f97316/FFF?text=Emilianusstollen" },
+                { name: "Grube Auersmacher", coords: [49.1500, 7.0500], type: "Kalk", period: "1935-2017", desc: "Kalkstein für die Eisenhütten.", img: "https://placehold.co/600x300/f97316/FFF?text=Grube+Auersmacher" },
+                { name: "Grube Korb", coords: [49.5000, 7.1000], type: "Eisen", period: "1912-1989", desc: "Eisen/Mangan bei St. Wendel.", img: "https://placehold.co/600x300/f97316/FFF?text=Grube+Korb" },
+                { name: "Grube Walhausen", coords: [49.5500, 7.1000], type: "Kupfer", period: "Mittelalter", desc: "Historischer Kupferabbau im Norden.", img: "https://placehold.co/600x300/f97316/FFF?text=Grube+Walhausen" }
             ],
             steel: [
-                { name: "Völklinger Hütte", coords: [49.2485, 6.8442], type: "Stahl", period: "UNESCO", desc: "Weltkulturerbe seit 1994." },
-                { name: "Dillinger Hütte", coords: [49.3480, 6.7450], type: "Stahl", period: "Aktiv", desc: "Grobblech-Spezialist." },
-                { name: "Neunkircher Eisenwerk", coords: [49.3455, 7.1780], type: "Stahl", period: "Stillgelegt", desc: "Prägte das Stadtbild NK." },
-                { name: "Halberger Hütte", coords: [49.2180, 7.0300], type: "Stahl", period: "Aktiv", desc: "Gussrohre und Motorteile." },
-                { name: "Burbacher Hütte", coords: [49.2420, 6.9350], type: "Stahl", period: "Aktiv", desc: "Drahtstraße (Saarstahl)." }
+                // -- DIE GROSSEN --
+                { name: "Völklinger Hütte", coords: [49.2485, 6.8442], type: "Stahl", period: "UNESCO", desc: "Weltkulturerbe seit 1994.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/V%C3%B6lklinger_H%C3%BCtte_01.jpg/640px-V%C3%B6lklinger_H%C3%BCtte_01.jpg" },
+                { name: "Dillinger Hütte", coords: [49.3480, 6.7450], type: "Stahl", period: "Aktiv", desc: "Grobblech-Spezialist.", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Dillingen_H%C3%BCtte_Hochofen.jpg/640px-Dillingen_H%C3%BCtte_Hochofen.jpg" },
+                { name: "Neunkircher Eisenwerk", coords: [49.3455, 7.1780], type: "Stahl", period: "Stillgelegt", desc: "Prägte das Stadtbild NK.", img: "https://placehold.co/600x300/475569/FFF?text=Neunkircher+Eisenwerk" },
+                { name: "Halberger Hütte", coords: [49.2180, 7.0300], type: "Stahl", period: "Aktiv", desc: "Gussrohre und Motorteile.", img: "https://placehold.co/600x300/475569/FFF?text=Halberger+H%C3%BCtte" },
+                { name: "Burbacher Hütte", coords: [49.2420, 6.9350], type: "Stahl", period: "Aktiv", desc: "Drahtstraße (Saarstahl).", img: "https://placehold.co/600x300/475569/FFF?text=Burbacher+H%C3%BCtte" },
+                
+                // -- HISTORISCHE HÜTTEN & SCHMELZEN --
+                { name: "Alte Schmelz (St. Ingbert)", coords: [49.2750, 7.1050], type: "Eisen", period: "1733-1991", desc: "Historisches Industriedenkmal.", img: "https://placehold.co/600x300/475569/FFF?text=Alte+Schmelz+IGB" },
+                { name: "St. Ingberter Eisenwerk", coords: [49.2800, 7.1200], type: "Eisen", period: "19. Jh.", desc: "Draht- und Nagelproduktion.", img: "https://placehold.co/600x300/475569/FFF?text=Eisenwerk+IGB" },
+                { name: "Röhrenwerke Bous", coords: [49.2750, 6.8050], type: "Stahl", period: "Aktiv", desc: "Mannesmann Röhrenwerke.", img: "https://placehold.co/600x300/475569/FFF?text=R%C3%B6hrenwerk+Bous" },
+                { name: "Eisenwerk Homburg", coords: [49.3250, 7.3350], type: "Eisen", period: "19. Jh.", desc: "Pfälzisch-saarländische Industrie.", img: "https://placehold.co/600x300/475569/FFF?text=Eisenwerk+Homburg" },
+                { name: "Mariahütte", coords: [49.6050, 6.9650], type: "Eisen", period: "ab 17. Jh.", desc: "Traditionshütte im Hochwald.", img: "https://placehold.co/600x300/475569/FFF?text=Mariah%C3%BCtte" },
+                { name: "Hubertushütte", coords: [49.5800, 6.9500], type: "Eisen", period: "18. Jh.", desc: "Bierfeld (Nonnweiler).", img: "https://placehold.co/600x300/475569/FFF?text=Hubertush%C3%BCtte" },
+                { name: "Geislauterner Eisenwerk", coords: [49.2350, 6.8300], type: "Eisen", period: "1585-1875", desc: "Wiege der saarländischen Eisenindustrie.", img: "https://placehold.co/600x300/475569/FFF?text=Geislautern" },
+                { name: "Eisenwerk Bettingen", coords: [49.4350, 6.8600], type: "Eisen", period: "1686-1868", desc: "Namensgeber für 'Schmelz'.", img: "https://placehold.co/600x300/475569/FFF?text=Bettinger+Schmelz" },
+                { name: "Aschbacher Eisenwerk", coords: [49.2300, 6.9100], type: "Eisen", period: "1724-1860", desc: "Gersweiler, Barockzeit.", img: "https://placehold.co/600x300/475569/FFF?text=Aschbacher+Werk" },
+                { name: "Fischbacher Schmelze", coords: [49.3150, 7.0400], type: "Eisen", period: "1728-1860", desc: "Frühindustrielle Anlage.", img: "https://placehold.co/600x300/475569/FFF?text=Fischbacher+Schmelze" },
+                { name: "Goffontaine", coords: [49.2250, 7.0500], type: "Eisen", period: "18. Jh.", desc: "Schafbrücke, Drahtzug.", img: "https://placehold.co/600x300/475569/FFF?text=Goffontaine" },
+                { name: "Wadgasser Hütte", coords: [49.2700, 6.7900], type: "Eisen/Glas", period: "17.-19. Jh.", desc: "Vom Eisen zum Kristallglas.", img: "https://placehold.co/600x300/475569/FFF?text=Wadgasser+H%C3%BCtte" },
+                { name: "Karlsbrunner Hütte", coords: [49.1850, 6.8300], type: "Eisen", period: "18. Jh.", desc: "Jagdschloss & Hütte im Warndt.", img: "https://placehold.co/600x300/475569/FFF?text=Karlsbrunn" },
+                { name: "Hütteweiler", coords: [49.3800, 7.0500], type: "Eisen", period: "Mittelalter", desc: "Ortsname zeugt von alter Hütte.", img: "https://placehold.co/600x300/475569/FFF?text=H%C3%BCtteweiler" },
+                { name: "Hütte Wecklingen", coords: [49.2300, 7.2500], type: "Eisen", period: "18. Jh.", desc: "Bliestal (Blieskastel).", img: "https://placehold.co/600x300/475569/FFF?text=Wecklingen" }
             ],
-            rails: [] // Leer lassen wie gewünscht
+            rails: []
         };
 
         const urbanData = [
@@ -289,7 +330,7 @@
 
         // --- ICONS ---
 
-        // Kohle-Icon (G) - Änderung von B zu G
+        // Kohle-Icon (G)
         const getMineIcon = (color) => L.divIcon({
             className: 'custom-div-icon',
             html: `
@@ -298,6 +339,22 @@
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                     <!-- Text G (Inside) -->
                     <text x="12" y="15" text-anchor="middle" fill="white" stroke="none" font-size="10" font-weight="900" font-family="Inter, sans-serif">G</text>
+                </svg>
+            `,
+            iconSize: [40, 40],
+            iconAnchor: [20, 40],
+            popupAnchor: [0, -40]
+        });
+
+        // Erz/Kalk-Icon (E) - Neu für nicht-Kohle
+        const getOreIcon = (color) => L.divIcon({
+            className: 'custom-div-icon',
+            html: `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 drop-shadow-lg">
+                    <!-- Pin Shape -->
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <!-- Text E (Inside) -->
+                    <text x="12" y="15" text-anchor="middle" fill="white" stroke="none" font-size="10" font-weight="900" font-family="Inter, sans-serif">E</text>
                 </svg>
             `,
             iconSize: [40, 40],
@@ -322,31 +379,60 @@
         });
 
         function renderHistory() {
-            document.getElementById('sidebar-title').innerText = "Industriezeitalter";
-            document.getElementById('sidebar-desc').innerText = "Kohle & Stahl (19. & 20. Jh.)";
+            document.getElementById('sidebar-title').innerText = "Berg- und Stahlbau";
+            document.getElementById('sidebar-desc').innerText = "Kohle, Erz & Stahl";
             const list = document.getElementById('sidebar-content');
 
             historyData.mines.forEach(mine => {
-                const marker = L.marker(mine.coords, { icon: getMineIcon('#ef4444') }).addTo(currentLayers);
-                marker.bindPopup(`
-                    <div class="p-2">
-                        <b class="text-red-600 block text-base">${mine.name}</b>
-                        <div class="text-xs text-slate-600 mt-1 mb-2 leading-snug">${mine.desc}</div>
-                        <span class="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded border border-red-100">Betrieb: ${mine.period}</span>
+                // Unterscheidung Icon Typ
+                let icon, color;
+                if (mine.type === "Kohle") {
+                    icon = getMineIcon('#ef4444');
+                    color = "bg-red-500";
+                } else {
+                    icon = getOreIcon('#f97316'); // Orange für Erz/Kalk
+                    color = "bg-orange-500";
+                }
+
+                const marker = L.marker(mine.coords, { icon: icon }).addTo(currentLayers);
+                
+                // Image Popup Template
+                const popupContent = `
+                    <div class="w-full bg-white">
+                        <div class="h-32 w-full overflow-hidden bg-gray-200 relative">
+                             <img src="${mine.img}" alt="${mine.name}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x300/${mine.type==='Kohle'?'ef4444':'f97316'}/FFF?text=${encodeURIComponent(mine.name)}'">
+                        </div>
+                        <div class="p-3">
+                            <b class="${mine.type==='Kohle'?'text-red-600':'text-orange-600'} block text-base">${mine.name}</b>
+                            <div class="text-xs text-slate-600 mt-1 mb-2 leading-snug">${mine.desc}</div>
+                            <div class="flex gap-2">
+                                <span class="${mine.type==='Kohle'?'bg-red-50 text-red-600 border-red-100':'bg-orange-50 text-orange-600 border-orange-100'} text-[10px] font-bold px-2 py-0.5 rounded border">${mine.type}</span>
+                                <span class="bg-slate-50 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">${mine.period}</span>
+                            </div>
+                        </div>
                     </div>
-                `);
-                list.appendChild(createListItem(mine.name, mine.desc, "ph-pick-axe", "bg-red-500", () => { map.flyTo(mine.coords, 13); marker.openPopup(); }));
+                `;
+                marker.bindPopup(popupContent);
+                list.appendChild(createListItem(mine.name, mine.desc, mine.type === "Kohle" ? "ph-pick-axe" : "ph-mountains", color, () => { map.flyTo(mine.coords, 13); marker.openPopup(); }));
             });
 
             historyData.steel.forEach(steel => {
                 const marker = L.marker(steel.coords, { icon: getSteelIcon('#475569') }).addTo(currentLayers);
-                marker.bindPopup(`
-                    <div class="p-2">
-                        <b class="text-slate-700 block text-base">${steel.name}</b>
-                        <div class="text-xs text-slate-600 mt-1 mb-2 leading-snug">${steel.desc}</div>
-                        <span class="bg-slate-50 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">${steel.period}</span>
+                
+                const popupContent = `
+                    <div class="w-full bg-white">
+                        <div class="h-32 w-full overflow-hidden bg-gray-200 relative">
+                             <img src="${steel.img}" alt="${steel.name}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/600x300/475569/FFF?text=${encodeURIComponent(steel.name)}'">
+                        </div>
+                        <div class="p-3">
+                            <b class="text-slate-700 block text-base">${steel.name}</b>
+                            <div class="text-xs text-slate-600 mt-1 mb-2 leading-snug">${steel.desc}</div>
+                            <span class="bg-slate-50 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200">${steel.period}</span>
+                        </div>
                     </div>
-                `);
+                `;
+
+                marker.bindPopup(popupContent);
                 list.appendChild(createListItem(steel.name, steel.desc, "ph-factory", "bg-slate-600", () => { map.flyTo(steel.coords, 13); marker.openPopup(); }));
             });
         }
@@ -369,13 +455,7 @@
                     color: color, fillColor: color, fillOpacity: 0.4, radius: radius, weight: 1
                 }).addTo(currentLayers);
 
-                circle.bindPopup(`
-                    <div class="text-center p-1">
-                        <b class="text-lg block mb-1">${city.name}</b>
-                        <div class="text-xs text-slate-500 mb-2 block">${city.desc}</div>
-                        <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs font-bold">${city.pop.toLocaleString()} EW</span>
-                    </div>
-                `);
+                circle.bindPopup(`<div class="text-center p-1"><b class="text-lg block mb-1">${city.name}</b><span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs font-bold">${city.pop.toLocaleString()} EW</span><br><span class="text-xs text-slate-500 mt-2 block">${city.desc}</span></div>`);
                 list.appendChild(createListItem(city.name, `${city.pop.toLocaleString()} EW`, "ph-buildings", "bg-purple-500", () => { map.flyTo(city.coords, 13); circle.openPopup(); }));
             });
         }
