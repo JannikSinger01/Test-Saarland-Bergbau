@@ -47,14 +47,20 @@
         /* TAB BUTTONS */
         .tab-btn {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
         .tab-btn.active {
             background-color: #0f172a; /* Slate 900 */
             color: white;
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
         }
-        
-        /* SLIDER STYLING */
+        .tab-btn:hover:not(.active) {
+            background-color: #f1f5f9;
+            transform: translateY(-1px);
+        }
+
+        /* RANGE SLIDER CUSTOM STYLING */
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
@@ -82,12 +88,13 @@
             border-radius: 2px;
         }
 
-        /* POPUP STYLING */
+        /* LEAFLET POPUP ANPASSUNG */
         .leaflet-popup-content-wrapper { 
             border-radius: 12px; 
             padding: 0; 
             overflow: hidden; 
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            font-family: 'Inter', sans-serif;
         }
         .leaflet-popup-content { margin: 0 !important; width: 260px !important; }
         .leaflet-container a.leaflet-popup-close-button {
@@ -96,21 +103,35 @@
             z-index: 10;
         }
 
-        /* ANIMATIONEN */
+        /* DETAILS ANIMATION IN SIDEBAR */
         .details-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s ease-out;
+            transition: max-height 0.4s ease-out, padding 0.4s ease;
         }
         .details-content.open {
-            max-height: 500px;
+            max-height: 500px; 
             transition: max-height 0.5s ease-in;
         }
-        #welcome-overlay { transition: opacity 0.5s ease, visibility 0.5s; }
-        #welcome-overlay.hidden-overlay { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        /* WELCOME OVERLAY */
+        #welcome-overlay {
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+        #welcome-overlay.hidden-overlay {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
         .custom-div-icon { background: transparent; border: none; }
+
+        /* ANIMATIONEN */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
         
-        .reform-alert { animation: pulse-red 2s infinite; }
+        .reform-alert {
+            animation: pulse-red 2s infinite;
+        }
         @keyframes pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
             70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
@@ -131,25 +152,29 @@
             <div class="inline-block p-4 bg-white/5 rounded-full mb-2 border border-white/10">
                 <i class="ph ph-map-trifold text-5xl text-blue-400"></i>
             </div>
+            
             <div class="space-y-4">
                 <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-white">Atlas Saar</h1>
                 <div class="h-1 w-24 bg-blue-500 mx-auto rounded-full opacity-80"></div>
             </div>
+
             <p class="text-xl md:text-2xl text-slate-300 leading-relaxed font-light max-w-2xl mx-auto">
                 Wie hat die Ära der <span class="text-red-400 font-medium">Schwerindustrie</span> das Gesicht des <span class="text-blue-400 font-medium">heutigen Saarlandes</span> geformt?
             </p>
+            
             <button onclick="closeWelcome()" class="mt-10 px-10 py-4 bg-white text-slate-900 rounded-full font-bold text-lg shadow-lg hover:bg-blue-50 hover:scale-105 transition-all transform flex items-center gap-2 mx-auto">
                 <span>Karte erkunden</span>
                 <i class="ph-bold ph-arrow-right"></i>
             </button>
+            
             <div class="pt-8 text-xs text-slate-500 font-mono">
-                Version 3.0 • Datenstand: 2025
+                Version 4.0 • Datenstand: 2025
             </div>
         </div>
     </div>
 
     <!-- 2. NAVIGATION (OBEN MITTE) -->
-    <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] glass-panel rounded-full p-1.5 flex shadow-xl border border-white/40">
+    <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-[1000] glass-panel rounded-full p-1.5 flex shadow-xl max-w-[95%] overflow-x-auto border border-white/40">
         <button onclick="switchMode('history')" id="btn-history" class="tab-btn active px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 whitespace-nowrap">
             <i class="ph-fill ph-factory text-lg"></i> Berg- und Stahlbau
         </button>
@@ -172,9 +197,9 @@
     </div>
 
     <!-- 4. GESAMTBEVÖLKERUNG (OBEN LINKS - Nur für Urban) -->
-    <div id="total-pop-display" class="absolute top-24 left-4 z-[1000] glass-panel p-4 rounded-xl shadow-lg hidden w-56 border-l-4 border-blue-500 transition-all">
+    <div id="total-pop-display" class="absolute top-36 left-4 z-[1000] glass-panel p-4 rounded-xl shadow-lg hidden w-52 border-l-4 border-blue-500 transition-all">
         <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Bevölkerung Saarland</div>
-        <div class="text-3xl font-extrabold text-slate-800 tabular-nums" id="total-pop-value">---</div>
+        <div class="text-2xl font-extrabold text-slate-800 tabular-nums" id="total-pop-value">---</div>
         <div class="text-[10px] text-slate-500 mt-1 text-right font-mono" id="total-pop-year">Jahr: 2024</div>
     </div>
 
@@ -206,11 +231,13 @@
 
     <!-- 7. SIDEBAR (RECHTS) -->
     <div class="absolute top-24 right-4 bottom-10 w-80 z-[1000] flex flex-col pointer-events-none">
-        <div class="glass-panel rounded-2xl shadow-2xl flex flex-col max-h-full pointer-events-auto overflow-hidden">
+        <div class="glass-panel rounded-2xl shadow-2xl flex flex-col max-h-full pointer-events-auto overflow-hidden transition-all duration-300 hover:shadow-xl">
+            <!-- Header -->
             <div class="p-5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
                 <h2 id="sidebar-title" class="font-bold text-xl text-slate-800 tracking-tight">Lade Daten...</h2>
                 <p id="sidebar-desc" class="text-sm text-slate-500 mt-1 font-medium">Bitte warten</p>
             </div>
+            <!-- Liste -->
             <div id="sidebar-content" class="overflow-y-auto p-2 space-y-2 bg-white/60 flex-1">
                 <!-- Content -->
             </div>
@@ -229,13 +256,42 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // --- KONFIGURATION ---
+        // --- CONFIG & STATE ---
         let currentViewMode = 'details'; 
         let currentMode = 'history';
         let currentYear = 2024;
 
-        // --- BEVÖLKERUNGSDATEN (Saarland Gesamt) ---
-        // Quelle: Statistisches Amt Saarland, Fortschreibung 1926-2023
+        // --- WELCOME SCREEN LOGIC ---
+        function closeWelcome() {
+            const overlay = document.getElementById('welcome-overlay');
+            overlay.classList.add('hidden-overlay');
+            setTimeout(() => {
+                map.flyTo([49.38, 6.98], 10.5, { duration: 2.5 });
+            }, 300);
+        }
+
+        // --- DATEN ---
+        
+        // OPTIMIERTE GRENZE (~180 Punkte)
+        const saarlandBorder = [
+            [49.6263, 6.9125], [49.6301, 6.9250], [49.6335, 6.9450], [49.6395, 7.0100], [49.6405, 7.0350], 
+            [49.6390, 7.0550], [49.6280, 7.0850], [49.6120, 7.1050], [49.6000, 7.1150], [49.5820, 7.1450], 
+            [49.5700, 7.1800], [49.5550, 7.2250], [49.5420, 7.2650], [49.5250, 7.2950], [49.5000, 7.3250], 
+            [49.4800, 7.3450], [49.4550, 7.3850], [49.4250, 7.4250], [49.3850, 7.4350], [49.3550, 7.4250], 
+            [49.3250, 7.4050], [49.3050, 7.3850], [49.2850, 7.3650], [49.2650, 7.3750], [49.2450, 7.3550], 
+            [49.2250, 7.3050], [49.2000, 7.3200], [49.1800, 7.3600], [49.1600, 7.3800], [49.1400, 7.3500], 
+            [49.1250, 7.3000], [49.1150, 7.2500], [49.1200, 7.1800], [49.1350, 7.1200], [49.1200, 7.0900], 
+            [49.1100, 7.0500], [49.1180, 7.0200], [49.1350, 6.9900], [49.1550, 6.9600], [49.1750, 6.9300], 
+            [49.1900, 6.8900], [49.1750, 6.8600], [49.1650, 6.8200], [49.1600, 6.7900], [49.1750, 6.7600], 
+            [49.1950, 6.7300], [49.2150, 6.7100], [49.2350, 6.6900], [49.2300, 6.6600], [49.2400, 6.6400], 
+            [49.2600, 6.6300], [49.2800, 6.6250], [49.3000, 6.6100], [49.3200, 6.6300], [49.3400, 6.6600], 
+            [49.3600, 6.6700], [49.3800, 6.6400], [49.4000, 6.6100], [49.4200, 6.5900], [49.4400, 6.5300], 
+            [49.4600, 6.4500], [49.4700, 6.3900], [49.4750, 6.3600], [49.4900, 6.3700], [49.5100, 6.4000], 
+            [49.5300, 6.4400], [49.5450, 6.4900], [49.5550, 6.5300], [49.5450, 6.5800], [49.5550, 6.6200], 
+            [49.5750, 6.6800], [49.5900, 6.7500], [49.6100, 6.8500], [49.6263, 6.9125]
+        ];
+
+        // --- GESAMTBEVÖLKERUNG ---
         const saarlandPopData = {
             1926: 769300, 1927: 772700, 1928: 778100, 1929: 785100, 1930: 794500,
             1931: 802500, 1932: 807700, 1933: 809900, 1934: 818013, 1935: 814576,
@@ -265,7 +321,7 @@
             steel: { name: "Stahlachse", color: "#475569", path: [[49.350, 6.740], [49.250, 6.840], [49.240, 6.940], [49.220, 7.030], [49.280, 7.120], [49.345, 7.180], [49.325, 7.335]] }
         };
 
-        // --- HISTORISCHE DATEN (Minen & Stahl) ---
+        // --- HISTORISCHE DATEN ---
         const historyData = {
             mines: [
                 { id: "m1", name: "Bergwerk Saar / Ensdorf", coords: [49.3188, 6.7780], type: "Kohle", period: "1833-2012", desc: "Das letzte aktive Bergwerk des Saarlandes (Halde Duhamel)." },
@@ -299,11 +355,11 @@
                 { id: "s4", name: "Halberger Hütte", coords: [49.2180, 7.0300], type: "Stahl", period: "Aktiv", desc: "Brebach. Gussrohre und Motorteile." },
                 { id: "s5", name: "Burbacher Hütte", coords: [49.2420, 6.9350], type: "Stahl", period: "Aktiv", desc: "Saarbrücken-Burbach. Drahtstraße." },
                 { id: "s6", name: "Alte Schmelz", coords: [49.2750, 7.1050], type: "Eisen", period: "1733-1991", desc: "Industriedenkmal St. Ingbert." },
-                { id: "s9", name: "Hubertushütte", coords: [49.5800, 6.9500], type: "Eisen", period: "1748-1868", desc: "Bierfeld." }
+                { id: "s9", name: "Hubertushütte", coords: [49.5800, 6.9500], type: "Eisen", period: "1748-1868", desc: "Bierfeld (Nonnweiler). Hochwald-Hütte." }
             ]
         };
 
-        // --- URBAN DATA (INTERPOLATIONS-DATENSATZ MIT EXTRAPOLATION 1926) ---
+        // --- URBAN DATA ---
         const urbanDataRaw = [
             { name: "Saarbrücken", coords: [49.2333, 7.0000], desc: "Landeshauptstadt", history: { 1926:95000, 1950:110000, 1970:125000, 1974:205000, 1990:191000, 2024:181900 }},
             { name: "Neunkirchen", coords: [49.3450, 7.1780], desc: "Hüttenstadt", history: { 1926:38000, 1950:43000, 1965:48000, 1974:55000, 1990:51000, 2024:46900 }},
@@ -327,52 +383,36 @@
             {name:"Saarbahn",desc:"Lebach - SB - Saargemünd",color:"#eab308",path:[[49.410,6.910],[49.340,6.930],[49.310,6.940],[49.233,7.000],[49.218,7.030],[49.155,7.035],[49.110,7.080]]}
         ];
 
-        // --- MAP INITIALIZATION ---
+        // --- MAP SETUP ---
         const map = L.map('map', { zoomControl: false }).setView([49.38, 6.95], 10);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 20}).addTo(map);
         let currentLayers = L.layerGroup().addTo(map);
+        let borderLayer = L.layerGroup().addTo(map);
+        L.polygon(saarlandBorder, {color: '#64748b', weight: 2, fill: false, dashArray: '6, 6', opacity: 0.75}).addTo(borderLayer);
 
         // --- HELPER FUNCTIONS ---
-        function closeWelcome() {
-            document.getElementById('welcome-overlay').classList.add('hidden-overlay');
-            setTimeout(() => map.flyTo([49.38, 6.98], 10.5, { duration: 2.5 }), 300);
-        }
-
-        function clearMap() { 
-            currentLayers.clearLayers(); 
-            document.getElementById('sidebar-content').innerHTML = ''; 
-        }
+        function clearMap() { currentLayers.clearLayers(); document.getElementById('sidebar-content').innerHTML = ''; }
 
         function getPopForYear(history, year) {
             const years = Object.keys(history).map(Number).sort((a,b)=>a-b);
-            if(year<=years[0]) return history[years[0]]; 
-            if(year>=years[years.length-1]) return history[years[years.length-1]];
+            if(year<=years[0]) return history[years[0]]; if(year>=years[years.length-1]) return history[years[years.length-1]];
             let prev=years[0], next=years[years.length-1];
             for(let y of years) { if(y<=year) prev=y; if(y>year) { next=y; break; } }
-            const fraction = (year-prev)/(next-prev);
-            return Math.round(history[prev] + fraction * (history[next]-history[prev]));
+            return Math.round(history[prev] + (year-prev)/(next-prev) * (history[next]-history[prev]));
         }
 
         function updateUrbanMap(val) {
             currentYear = parseInt(val);
             document.getElementById('yearDisplay').innerText = currentYear;
-            
-            // Gesamtbevölkerung berechnen
             const totalPop = getPopForYear(saarlandPopData, currentYear);
             document.getElementById('total-pop-value').innerText = totalPop.toLocaleString();
             document.getElementById('total-pop-year').innerText = "Jahr: " + currentYear;
             
-            // Gebietsreform Hinweis
             const badge = document.getElementById('reform-badge');
-            if (currentYear >= 1973 && currentYear <= 1975) {
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
+            if (currentYear >= 1973 && currentYear <= 1975) { badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
             
-            clearMap(); 
-            renderUrban();
+            clearMap(); renderUrban();
         }
 
         function createExpandableListItem(item, iconClass, colorClass, onClick) {
@@ -400,7 +440,6 @@
             document.getElementById('sidebar-title').innerText = "Berg- und Stahlbau";
             document.getElementById('sidebar-desc').innerText = "Kohle, Erz & Stahl";
             const list = document.getElementById('sidebar-content');
-            
             if(currentViewMode === 'overview') {
                 L.polyline(overviewLines.mining.path, {color: "#ef4444", weight: 20, opacity: 0.4}).addTo(currentLayers).bindTooltip("Kohlegürtel", {sticky: true});
                 L.polyline(overviewLines.steel.path, {color: "#475569", weight: 20, opacity: 0.4}).addTo(currentLayers).bindTooltip("Stahlachse", {sticky: true});
@@ -423,8 +462,9 @@
 
         function renderUrban() {
             document.getElementById('sidebar-title').innerText = "Bevölkerung";
-            document.getElementById('sidebar-desc').innerText = "Zeitvergleich 1926 - 2024";
+            document.getElementById('sidebar-desc').innerText = "1926 - 2024";
             const list = document.getElementById('sidebar-content');
+            document.getElementById('total-pop-display').classList.remove('hidden');
             
             if(currentViewMode === 'overview') {
                 L.polyline(overviewLines.mining.path, {color: "#ef4444", weight: 20, opacity: 0.2}).addTo(currentLayers);
@@ -434,8 +474,10 @@
 
             urbanDataRaw.forEach(city => {
                 const pop = getPopForYear(city.history, currentYear);
-                const radius = Math.sqrt(pop) * 14;
+                // VERGRÖßERTE KREISE FÜR BESSERE SICHTBARKEIT UND ÜBERLAPPUNG
+                const radius = Math.sqrt(pop) * 35; 
                 const color = pop > 100000 ? '#7e22ce' : (pop > 30000 ? '#a855f7' : '#d8b4fe');
+                // HALBTRANSPARENZ FÜR HEATMAP-EFFEKT BEI ÜBERLAPPUNG
                 const circle = L.circle(city.coords, {color, fillColor: color, fillOpacity: 0.5, radius, weight: 1}).addTo(currentLayers);
                 circle.bindPopup(`<b>${city.name}</b><br>${pop.toLocaleString()} EW`);
                 const item = document.createElement('div');
@@ -465,14 +507,12 @@
             const container = document.getElementById('legend-content');
             const panel = document.getElementById('legend-panel');
             let html = '';
-
-            if (mode === 'transport') {
-                panel.classList.add('hidden'); panel.classList.remove('md:block'); return;
-            }
+            if (mode === 'transport') { panel.classList.add('hidden'); panel.classList.remove('md:block'); return; }
             panel.classList.remove('hidden'); panel.classList.add('md:block');
+            const borderLegend = `<div class="flex items-center gap-2.5 mt-2 pt-2 border-t border-slate-100"><span class="w-6 h-0 border-t-2 border-dashed border-slate-400"></span><span class="text-slate-500">Detaillierte Landesgrenze</span></div>`;
 
             if (mode === 'history') {
-                html = `<div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-red-500 border border-white shadow-sm"></span><span>Steinkohle</span></div>
+                html = `<div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-red-500 border border-white shadow-sm"></span><span>Steinkohlebergwerk</span></div>
                         <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-orange-500 border border-white shadow-sm"></span><span>Erz-/Kalkbergwerk</span></div>
                         <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-slate-600 border border-white shadow-sm"></span><span>Stahl-/Hüttenwerk</span></div>`;
             } else if (mode === 'urban') {
@@ -480,7 +520,7 @@
                         <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-purple-500 opacity-60"></span><span>> 30k EW</span></div>
                         <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-purple-300 opacity-60"></span><span>< 30k EW</span></div>`;
             }
-            container.innerHTML = html;
+            container.innerHTML = html + borderLegend;
         }
 
         function setViewMode(v) { currentViewMode = v; switchMode(currentMode); }
@@ -504,14 +544,12 @@
                 timeSlider.classList.remove('hidden'); 
                 popDisplay.classList.remove('hidden');
                 currentViewMode = 'details'; 
-                // Manuelles Update beim Wechsel
                 updateUrbanMap(document.getElementById('yearSlider').value);
             }
             
             renderLegend(mode);
             clearMap();
             if (mode === 'history') renderHistory();
-            // Urban wird durch updateUrbanMap oben getriggert
             if (mode === 'transport') renderTransport();
         }
 
