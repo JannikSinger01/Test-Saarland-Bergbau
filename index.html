@@ -168,7 +168,7 @@
             </button>
             
             <div class="pt-8 text-xs text-slate-500 font-mono">
-                Version 35.0 • Datenstand: 2025
+                Version 36.0 • Datenstand: 2025
             </div>
         </div>
     </div>
@@ -513,6 +513,10 @@
                     desc: "Im Warndt gelegen, nah beim Jagdschloss Karlsbrunn. Nutzte die reichen Holzvorkommen des Warndtwaldes." 
                 },
                 { 
+                    id: "s17", name: "Hütteweiler", coords: [49.3800, 7.0500], type: "Eisen", period: "Mittelalter", 
+                    desc: "Der Ortsname bei Illingen zeugt von sehr alter Verhüttungstradition in dieser Gegend." 
+                },
+                { 
                     id: "s18", name: "Hütte Wecklingen", coords: [49.2300, 7.2500], type: "Eisen", period: "18. Jh.", 
                     desc: "Kleine historische Anlage im Bliestal (Blieskastel)." 
                 },
@@ -532,6 +536,7 @@
             rails: []
         };
 
+        // --- URBAN DATA ---
         const urbanDataRaw = [
             { name: "Saarbrücken", coords: [49.2333, 7.0000], desc: "Landeshauptstadt", history: { 1926:95000, 1950:110000, 1970:125000, 1974:205000, 1990:191000, 2024:181900 }},
             { name: "Neunkirchen", coords: [49.3450, 7.1780], desc: "Hüttenstadt", history: { 1926:38000, 1950:43000, 1965:48000, 1974:55000, 1990:51000, 2024:46900 }},
@@ -685,13 +690,15 @@
                 L.polyline(overviewLines.mining.path, {color: "#ef4444", weight: 20, opacity: 0.6}).addTo(currentLayers).bindTooltip("Kohlegürtel", {sticky: true});
                 L.polyline(overviewLines.steel.path, {color: "#475569", weight: 20, opacity: 0.6}).addTo(currentLayers).bindTooltip("Stahlachse", {sticky: true});
                 list.innerHTML = `<div class="p-4 bg-slate-50 text-slate-800 text-xs rounded-xl border border-slate-200"><b>Strukturanalyse:</b> Die Linien zeigen die historischen Industrieachsen.</div>`;
+                // Add interactive items for lines
+                list.appendChild(createSimpleListItem("Kohlegürtel", "Historische Hauptachse", "#ef4444", () => map.fitBounds(L.polyline(overviewLines.mining.path).getBounds())));
+                list.appendChild(createSimpleListItem("Stahlachse", "Industrielle Tallagen", "#475569", () => map.fitBounds(L.polyline(overviewLines.steel.path).getBounds())));
             } else {
                 historyData.mines.forEach(m => {
                     let icon = m.type === "Kohle" ? getMineIcon('#ef4444') : getOreIcon('#f97316');
                     let color = m.type === "Kohle" ? "bg-red-500" : "bg-orange-500";
                     const marker = L.marker(m.coords, {icon: icon}).addTo(currentLayers);
 
-                    // ** IMPROVED POPUP **
                     let badgeColor = m.type === "Kohle" ? "bg-red-50 text-red-600 border-red-100" : "bg-orange-50 text-orange-600 border-orange-100";
                     marker.bindPopup(`
                         <div class="w-full bg-white p-3">
@@ -708,7 +715,6 @@
                 historyData.steel.forEach(s => {
                     const marker = L.marker(s.coords, {icon: getSteelIcon('#475569')}).addTo(currentLayers);
                     
-                    // ** IMPROVED POPUP **
                     let badgeColor = "bg-slate-50 text-slate-600 border-slate-200";
                     marker.bindPopup(`
                         <div class="w-full bg-white p-3">
