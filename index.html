@@ -168,7 +168,7 @@
             </button>
             
             <div class="pt-8 text-xs text-slate-500 font-mono">
-                Version 5.0 • Datenstand: 2025
+                Version 6.0 • Datenstand: 2025
             </div>
         </div>
     </div>
@@ -186,7 +186,7 @@
         </button>
     </div>
 
-    <!-- 3. VIEW CONTROL (OBEN LINKS - Nur für History & Transport) -->
+    <!-- 3. VIEW CONTROL (OBEN LINKS) -->
     <div id="view-controls" class="absolute top-24 left-4 z-[1000] glass-panel p-2 rounded-lg shadow-lg flex gap-2">
         <button onclick="setViewMode('details')" id="view-details" class="px-3 py-1.5 rounded-md text-xs font-bold bg-slate-800 text-white shadow transition-all flex items-center gap-1">
             <i class="ph-fill ph-map-pin"></i> Details
@@ -272,7 +272,7 @@
 
         // --- DATEN ---
         
-        // OPTIMIERTE GRENZE (~180 Punkte)
+        // OPTIMIERTE GRENZE
         const saarlandBorder = [
             [49.6263, 6.9125], [49.6301, 6.9250], [49.6335, 6.9450], [49.6395, 7.0100], [49.6405, 7.0350], 
             [49.6390, 7.0550], [49.6280, 7.0850], [49.6120, 7.1050], [49.6000, 7.1150], [49.5820, 7.1450], 
@@ -386,9 +386,9 @@
         L.control.zoom({ position: 'bottomright' }).addTo(map);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 20}).addTo(map);
         let currentLayers = L.layerGroup().addTo(map);
+        let borderLayer = L.layerGroup().addTo(map);
         
-        // Landesgrenze als eigener Layer (immer sichtbar)
-        const borderLayer = L.layerGroup().addTo(map);
+        // Landesgrenze als dauerhafter Layer
         L.polygon(saarlandBorder, {color: '#64748b', weight: 2, fill: false, dashArray: '6, 6', opacity: 0.75}).addTo(borderLayer);
 
         // --- HELPER FUNCTIONS ---
@@ -436,14 +436,44 @@
         const getOreIcon = (c) => L.divIcon({className: 'custom-div-icon', html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${c}" stroke="white" stroke-width="1.5" class="w-8 h-8 drop-shadow-lg"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><text x="12" y="15" text-anchor="middle" fill="white" stroke="none" font-size="10" font-weight="900" font-family="Inter">E</text></svg>`, iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-32]});
         const getSteelIcon = (c) => L.divIcon({className: 'custom-div-icon', html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${c}" stroke="white" stroke-width="1.5" class="w-8 h-8 drop-shadow-lg"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><text x="12" y="15" text-anchor="middle" fill="white" stroke="none" font-size="10" font-weight="900" font-family="Inter">H</text></svg>`, iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-32]});
 
+        function addOverviewLines(containerList) {
+            // Opazität der Übersichtslinien erhöht für bessere Sichtbarkeit
+            const miningLine = L.polyline(overviewLines.mining.path, { color: overviewLines.mining.color, weight: 20, opacity: 0.6, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(currentLayers);
+            const steelLine = L.polyline(overviewLines.steel.path, { color: overviewLines.steel.color, weight: 20, opacity: 0.6, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(currentLayers);
+            if (containerList) { const overlayInfo = document.createElement('div'); overlayInfo.className = "mt-4 p-2 border-t border-slate-200 text-[10px] text-slate-400 text-center uppercase tracking-wider"; overlayInfo.innerHTML = "Industrieachsen eingeblendet"; containerList.appendChild(overlayInfo); }
+        }
+
+        function renderLegend(mode) {
+            const container = document.getElementById('legend-content');
+            const panel = document.getElementById('legend-panel');
+            let html = '';
+            if (mode === 'transport') { panel.classList.add('hidden'); panel.classList.remove('md:block'); return; }
+            panel.classList.remove('hidden'); panel.classList.add('md:block');
+            // Legendentext angepasst
+            const borderLegend = `<div class="flex items-center gap-2.5 mt-2 pt-2 border-t border-slate-100"><span class="w-6 h-0 border-t-2 border-dashed border-slate-400"></span><span class="text-slate-500">Grobe Landesgrenze</span></div>`;
+
+            if (mode === 'history') {
+                html = `<div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-red-500 border border-white shadow-sm"></span><span>Steinkohlebergwerk</span></div>
+                        <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-orange-500 border border-white shadow-sm"></span><span>Erz-/Kalkbergwerk</span></div>
+                        <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-slate-600 border border-white shadow-sm"></span><span>Stahl-/Hüttenwerk</span></div>`;
+            } else if (mode === 'urban') {
+                html = `<div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-purple-700 opacity-60"></span><span>> 100k EW</span></div>
+                        <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-purple-500 opacity-60"></span><span>> 30k EW</span></div>
+                        <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-purple-300 opacity-60"></span><span>< 30k EW</span></div>
+                        <div class="mt-2 pt-2 border-t border-slate-100"><div class="flex items-center gap-2.5"><span class="w-4 h-1 bg-red-500 rounded-full opacity-50"></span><span class="text-[10px] text-slate-500">Kohlegürtel (in Übersicht)</span></div><div class="flex items-center gap-2.5"><span class="w-4 h-1 bg-slate-600 rounded-full opacity-50"></span><span class="text-[10px] text-slate-500">Stahlachse (in Übersicht)</span></div></div>`;
+            }
+            container.innerHTML = html + borderLegend;
+        }
+
         function renderHistory() {
             document.getElementById('sidebar-title').innerText = "Berg- und Stahlbau";
             document.getElementById('sidebar-desc').innerText = "Kohle, Erz & Stahl";
             const list = document.getElementById('sidebar-content');
             
             if(currentViewMode === 'overview') {
-                L.polyline(overviewLines.mining.path, {color: "#ef4444", weight: 20, opacity: 0.4}).addTo(currentLayers).bindTooltip("Kohlegürtel", {sticky: true});
-                L.polyline(overviewLines.steel.path, {color: "#475569", weight: 20, opacity: 0.4}).addTo(currentLayers).bindTooltip("Stahlachse", {sticky: true});
+                // Opazität der Übersichtslinien erhöht
+                L.polyline(overviewLines.mining.path, {color: "#ef4444", weight: 20, opacity: 0.6}).addTo(currentLayers).bindTooltip("Kohlegürtel", {sticky: true});
+                L.polyline(overviewLines.steel.path, {color: "#475569", weight: 20, opacity: 0.6}).addTo(currentLayers).bindTooltip("Stahlachse", {sticky: true});
                 list.innerHTML = `<div class="p-4 bg-slate-50 text-slate-800 text-xs rounded-xl border border-slate-200"><b>Strukturanalyse:</b> Die Linien zeigen die historischen Industrieachsen.</div>`;
             } else {
                 historyData.mines.forEach(m => {
@@ -468,15 +498,16 @@
             document.getElementById('total-pop-display').classList.remove('hidden');
             
             if(currentViewMode === 'overview') {
-                L.polyline(overviewLines.mining.path, {color: "#ef4444", weight: 20, opacity: 0.2}).addTo(currentLayers);
-                L.polyline(overviewLines.steel.path, {color: "#475569", weight: 20, opacity: 0.2}).addTo(currentLayers);
+                // Opazität der Übersichtslinien erhöht
+                L.polyline(overviewLines.mining.path, {color: "#ef4444", weight: 20, opacity: 0.6}).addTo(currentLayers);
+                L.polyline(overviewLines.steel.path, {color: "#475569", weight: 20, opacity: 0.6}).addTo(currentLayers);
                 list.innerHTML = `<div class="p-4 bg-blue-50 text-blue-900 text-xs rounded-xl border border-blue-100"><b>Korrelation:</b> Bevölkerungsschwerpunkte liegen auf den Industrieachsen.</div>`;
             }
 
             urbanDataRaw.forEach(city => {
                 const pop = getPopForYear(city.history, currentYear);
-                // RADIUS ERHÖHT (x25)
-                const radius = Math.sqrt(pop) * 25; 
+                // RADIUS VERKLEINERT (von x22 auf x15)
+                const radius = Math.sqrt(pop) * 15; 
                 const color = pop > 100000 ? '#7e22ce' : (pop > 30000 ? '#a855f7' : '#d8b4fe');
                 const circle = L.circle(city.coords, {color, fillColor: color, fillOpacity: 0.5, radius, weight: 1}).addTo(currentLayers);
                 circle.bindPopup(`<b>${city.name}</b><br>${pop.toLocaleString()} EW`);
@@ -493,8 +524,9 @@
             document.getElementById('sidebar-desc').innerText = "Aktive Linien";
             const list = document.getElementById('sidebar-content');
             if(currentViewMode === 'overview') {
-                 L.polyline(overviewLines.mining.path, {color: "#ef4444", weight: 20, opacity: 0.2}).addTo(currentLayers);
-                 L.polyline(overviewLines.steel.path, {color: "#475569", weight: 20, opacity: 0.2}).addTo(currentLayers);
+                 // Opazität der Übersichtslinien erhöht
+                 L.polyline(overviewLines.mining.path, {color: "#ef4444", weight: 20, opacity: 0.6}).addTo(currentLayers);
+                 L.polyline(overviewLines.steel.path, {color: "#475569", weight: 20, opacity: 0.6}).addTo(currentLayers);
                  list.innerHTML = `<div class="p-4 bg-blue-50 text-blue-900 text-xs rounded-xl border border-blue-100"><b>Historische Pfade:</b> Das moderne Netz folgt den alten Transportwegen.</div>`;
             }
             transportData.forEach(r => {
@@ -502,33 +534,6 @@
                 list.appendChild(createSimpleListItem(r.name, r.desc, r.color, () => map.fitBounds(poly.getBounds())));
             });
         }
-
-        function renderLegend(mode) {
-            const container = document.getElementById('legend-content');
-            const panel = document.getElementById('legend-panel');
-            let html = '';
-
-            if (mode === 'transport') {
-                panel.classList.add('hidden'); panel.classList.remove('md:block'); return;
-            }
-            panel.classList.remove('hidden'); panel.classList.add('md:block');
-
-            // BORDER LEGEND HINZUGEFÜGT
-            const borderLegend = `<div class="flex items-center gap-2.5 mt-2 pt-2 border-t border-slate-100"><span class="w-6 h-0 border-t-2 border-dashed border-slate-400"></span><span class="text-slate-500">Detaillierte Landesgrenze</span></div>`;
-
-            if (mode === 'history') {
-                html = `<div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-red-500 border border-white shadow-sm"></span><span>Steinkohlebergwerk</span></div>
-                        <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-orange-500 border border-white shadow-sm"></span><span>Erz-/Kalkbergwerk</span></div>
-                        <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-slate-600 border border-white shadow-sm"></span><span>Stahl-/Hüttenwerk</span></div>`;
-            } else if (mode === 'urban') {
-                html = `<div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-purple-700 opacity-60"></span><span>> 100k EW</span></div>
-                        <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-purple-500 opacity-60"></span><span>> 30k EW</span></div>
-                        <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-purple-300 opacity-60"></span><span>< 30k EW</span></div>`;
-            }
-            container.innerHTML = html + borderLegend;
-        }
-
-        function setViewMode(v) { currentViewMode = v; switchMode(currentMode); }
 
         function switchMode(mode) {
             currentMode = mode;
@@ -540,24 +545,47 @@
             const timeSlider = document.getElementById('time-slider-container');
             const popDisplay = document.getElementById('total-pop-display');
             
+            // viewCtrl nicht mehr verstecken für Urban Mode, damit Übersicht verfügbar ist
             viewCtrl.classList.remove('hidden'); 
+            
             timeSlider.classList.add('hidden');
             popDisplay.classList.add('hidden');
 
             if(mode === 'urban') { 
-                viewCtrl.classList.add('hidden'); 
                 timeSlider.classList.remove('hidden'); 
                 popDisplay.classList.remove('hidden');
-                currentViewMode = 'details'; 
-                // Manuelles Update beim Wechsel
+                // Keine erzwungene Rücksetzung auf details, damit man umschalten kann
+                // Aber wenn man frisch reinkommt, vielleicht sinnvoll? Nein, user will umschalten.
+                // Wir rufen updateUrbanMap auf, was neu rendert.
                 updateUrbanMap(document.getElementById('yearSlider').value);
+            } else {
+                clearMap();
+                if (mode === 'history') renderHistory();
+                if (mode === 'transport') renderTransport();
             }
             
             renderLegend(mode);
-            clearMap();
-            if (mode === 'history') renderHistory();
-            // Urban wird durch updateUrbanMap oben getriggert
-            if (mode === 'transport') renderTransport();
+        }
+
+        function setViewMode(v) { 
+            currentViewMode = v; 
+            
+            // Visual toggle updates
+            if (v === 'details') {
+                document.getElementById('view-details').className = "px-3 py-1.5 rounded-md text-xs font-bold bg-slate-800 text-white shadow transition-all flex items-center gap-1";
+                document.getElementById('view-overview').className = "px-3 py-1.5 rounded-md text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1";
+            } else {
+                document.getElementById('view-details').className = "px-3 py-1.5 rounded-md text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1";
+                document.getElementById('view-overview').className = "px-3 py-1.5 rounded-md text-xs font-bold bg-slate-800 text-white shadow transition-all flex items-center gap-1";
+            }
+
+            if (currentMode === 'urban') {
+                updateUrbanMap(document.getElementById('yearSlider').value);
+            } else {
+                clearMap();
+                if (currentMode === 'history') renderHistory();
+                if (currentMode === 'transport') renderTransport();
+            }
         }
 
         setTimeout(() => { switchMode('history'); }, 100);
