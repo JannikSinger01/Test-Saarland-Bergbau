@@ -168,7 +168,7 @@
             </button>
             
             <div class="pt-8 text-xs text-slate-500 font-mono">
-                Version 34.0 • Datenstand: 2025
+                Version 35.0 • Datenstand: 2025
             </div>
         </div>
     </div>
@@ -320,7 +320,6 @@
             steel: { name: "Stahlachse", desc: "Industrielle Verarbeitung in den Tälern.", color: "#475569", path: [[49.350, 6.740], [49.250, 6.840], [49.240, 6.940], [49.220, 7.030], [49.280, 7.120], [49.345, 7.180], [49.325, 7.335]] }
         };
 
-        // --- HISTORISCHE DATEN (MIT AUSFÜHRLICHEN TEXTEN) ---
         const historyData = {
             mines: [
                 { 
@@ -514,10 +513,6 @@
                     desc: "Im Warndt gelegen, nah beim Jagdschloss Karlsbrunn. Nutzte die reichen Holzvorkommen des Warndtwaldes." 
                 },
                 { 
-                    id: "s17", name: "Hütteweiler", coords: [49.3800, 7.0500], type: "Eisen", period: "Mittelalter", 
-                    desc: "Der Ortsname bei Illingen zeugt von sehr alter Verhüttungstradition in dieser Gegend." 
-                },
-                { 
                     id: "s18", name: "Hütte Wecklingen", coords: [49.2300, 7.2500], type: "Eisen", period: "18. Jh.", 
                     desc: "Kleine historische Anlage im Bliestal (Blieskastel)." 
                 },
@@ -533,10 +528,10 @@
                     id: "s21", name: "Hüttigweiler", coords: [49.3880, 7.0800], type: "Eisen", period: "Mittelalter", 
                     desc: "Historischer Standort in Illingen. Der Ortsname verweist auf eine frühe Hütte (Schmelze) oder Siedlung bei einer Hütte." 
                 }
-            ]
+            ],
+            rails: []
         };
 
-        // --- URBAN DATA ---
         const urbanDataRaw = [
             { name: "Saarbrücken", coords: [49.2333, 7.0000], desc: "Landeshauptstadt", history: { 1926:95000, 1950:110000, 1970:125000, 1974:205000, 1990:191000, 2024:181900 }},
             { name: "Neunkirchen", coords: [49.3450, 7.1780], desc: "Hüttenstadt", history: { 1926:38000, 1950:43000, 1965:48000, 1974:55000, 1990:51000, 2024:46900 }},
@@ -585,8 +580,10 @@
             const totalPop = getPopForYear(saarlandPopData, currentYear);
             document.getElementById('total-pop-value').innerText = totalPop.toLocaleString();
             document.getElementById('total-pop-year').innerText = "Jahr: " + currentYear;
+            
             const badge = document.getElementById('reform-badge');
             if (currentYear >= 1973 && currentYear <= 1975) { badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
+            
             clearMap(); renderUrban();
         }
 
@@ -606,19 +603,29 @@
             div.className = `group rounded-xl bg-white border border-slate-100 hover:border-slate-300 shadow-sm mb-2 overflow-hidden`;
             const dotColor = colorClass.replace('border-', 'bg-').replace('text-', 'bg-');
             
+            // Badge Logic for List Item Header/Body
             let badgeHtml = '';
             if (item.type) {
                 let badgeColor = "bg-slate-100 text-slate-600 border-slate-200";
                 if (item.type === "Kohle") badgeColor = "bg-red-50 text-red-600 border-red-100";
                 else if (item.type === "Eisen" || item.type === "Kupfer" || item.type === "Kalk") badgeColor = "bg-orange-50 text-orange-600 border-orange-100";
                 else if (item.type === "Stahl") badgeColor = "bg-slate-50 text-slate-600 border-slate-200";
+
                 badgeHtml = `<span class="${badgeColor} text-[10px] font-bold px-2 py-0.5 rounded border ml-2">${item.type}</span>`;
             }
 
             div.innerHTML = `
                 <div class="p-3.5 flex items-center gap-3.5 cursor-pointer" onclick="this.nextElementSibling.classList.toggle('open'); ${onClickMarker?`(${onClickMarker})()`:''}">
-                    <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-xl text-slate-500"><i class="${iconClass}"></i></div>
-                    <div class="flex-1"><div class="font-bold text-sm text-slate-800 flex items-center">${item.name} <span class="md:hidden">${badgeHtml}</span></div><div class="text-xs text-slate-500 font-medium">${item.period}</div></div>
+                    <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-xl text-slate-500">
+                        <i class="${iconClass}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-bold text-sm text-slate-800 flex items-center">
+                            ${item.name} 
+                            <span class="md:hidden">${badgeHtml}</span>
+                        </div>
+                        <div class="text-xs text-slate-500 font-medium">${item.period}</div>
+                    </div>
                     <div class="w-2 h-2 rounded-full ${dotColor}"></div>
                 </div>
                 <div id="details-${item.id}" class="details-content bg-slate-50 text-xs text-slate-600 px-4">
@@ -683,14 +690,36 @@
                     let icon = m.type === "Kohle" ? getMineIcon('#ef4444') : getOreIcon('#f97316');
                     let color = m.type === "Kohle" ? "bg-red-500" : "bg-orange-500";
                     const marker = L.marker(m.coords, {icon: icon}).addTo(currentLayers);
+
+                    // ** IMPROVED POPUP **
                     let badgeColor = m.type === "Kohle" ? "bg-red-50 text-red-600 border-red-100" : "bg-orange-50 text-orange-600 border-orange-100";
-                    marker.bindPopup(`<div class="w-full bg-white p-3"><div class="flex justify-between items-start"><b class="${m.type==='Kohle'?'text-red-600':'text-orange-600'} block text-sm">${m.name}</b><span class="${badgeColor} text-[9px] font-bold px-1.5 py-0.5 rounded border">${m.type}</span></div><div class="text-xs text-slate-500 mt-1 mb-3">${m.period}</div><button onclick="expandSidebarItem('${m.id}')" class="w-full text-center bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-1.5 rounded transition-colors">Weitere Informationen →</button></div>`);
+                    marker.bindPopup(`
+                        <div class="w-full bg-white p-3">
+                            <div class="flex justify-between items-start">
+                                <b class="${m.type==='Kohle'?'text-red-600':'text-orange-600'} block text-sm">${m.name}</b>
+                                <span class="${badgeColor} text-[9px] font-bold px-1.5 py-0.5 rounded border">${m.type}</span>
+                            </div>
+                            <div class="text-xs text-slate-500 mt-1 mb-3">${m.period}</div>
+                            <button onclick="expandSidebarItem('${m.id}')" class="w-full text-center bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-1.5 rounded transition-colors">Weitere Informationen →</button>
+                        </div>
+                    `);
                     list.appendChild(createExpandableListItem(m, m.type === "Kohle" ? "ph-pick-axe" : "ph-mountains", color, () => { map.flyTo(m.coords, 13); marker.openPopup(); }));
                 });
                 historyData.steel.forEach(s => {
                     const marker = L.marker(s.coords, {icon: getSteelIcon('#475569')}).addTo(currentLayers);
+                    
+                    // ** IMPROVED POPUP **
                     let badgeColor = "bg-slate-50 text-slate-600 border-slate-200";
-                    marker.bindPopup(`<div class="w-full bg-white p-3"><div class="flex justify-between items-start"><b class="text-slate-700 block text-sm">${s.name}</b><span class="${badgeColor} text-[9px] font-bold px-1.5 py-0.5 rounded border">${s.type}</span></div><div class="text-xs text-slate-500 mt-1 mb-3">${s.period}</div><button onclick="expandSidebarItem('${s.id}')" class="w-full text-center bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-1.5 rounded transition-colors">Weitere Informationen →</button></div>`);
+                    marker.bindPopup(`
+                        <div class="w-full bg-white p-3">
+                            <div class="flex justify-between items-start">
+                                <b class="text-slate-700 block text-sm">${s.name}</b>
+                                <span class="${badgeColor} text-[9px] font-bold px-1.5 py-0.5 rounded border">${s.type}</span>
+                            </div>
+                            <div class="text-xs text-slate-500 mt-1 mb-3">${s.period}</div>
+                            <button onclick="expandSidebarItem('${s.id}')" class="w-full text-center bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-1.5 rounded transition-colors">Weitere Informationen →</button>
+                        </div>
+                    `);
                     list.appendChild(createExpandableListItem(s, "ph-factory", "bg-slate-600", () => { map.flyTo(s.coords, 13); marker.openPopup(); }));
                 });
             }
