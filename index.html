@@ -20,9 +20,9 @@
         input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #cbd5e1; border-radius: 2px; }
         .leaflet-popup-content-wrapper { border-radius: 12px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
-        .leaflet-popup-content { margin: 0 !important; width: 260px !important; }
+        .leaflet-popup-content { margin: 0 !important; width: 280px !important; }
         .details-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
-        .details-content.open { max-height: 500px; transition: max-height 0.5s ease-in; }
+        .details-content.open { max-height: 600px; transition: max-height 0.5s ease-in; }
         #welcome-overlay.hidden-overlay { opacity: 0; visibility: hidden; pointer-events: none; }
         .custom-div-icon { background: transparent; border: none; }
         .reform-alert { animation: pulse-red 2s infinite; }
@@ -34,7 +34,7 @@
         .flag-box:hover { transform: scale(1.05); }
         .flag-img { width: 100%; height: 100%; object-fit: cover; }
         .location-img { width: 100%; height: 140px; object-fit: cover; background-color: #e2e8f0; }
-        .copyright-text { font-size: 9px; color: #94a3b8; margin-top: 2px; text-align: right; font-style: italic; }
+        .copyright-text { font-size: 9px; color: #64748b; margin-top: 4px; text-align: right; font-style: italic; }
     </style>
 </head>
 <body class="relative h-screen w-screen text-slate-800">
@@ -63,7 +63,7 @@
             </div>
             <p class="text-xl md:text-3xl text-slate-200 leading-relaxed font-light max-w-3xl mx-auto text-center">Wie hat die Ära der <span class="text-red-400 font-medium border-b border-red-400/30">Schwerindustrie</span> das Gesicht des <span class="text-blue-400 font-medium border-b border-blue-400/30">heutigen Saarlandes</span> geformt?</p>
             <button onclick="closeWelcome()" class="mt-12 px-10 py-4 bg-white text-slate-900 rounded-full font-bold text-xl shadow-lg hover:bg-blue-50 hover:scale-105 hover:shadow-[0_0_60px_rgba(255,255,255,0.4)] transition-all transform flex items-center gap-3 mx-auto"><span>Karte erkunden</span><i class="ph-bold ph-arrow-right"></i></button>
-            <div class="pt-6 text-xs text-slate-500 font-mono">Version 45.0 (Final) • Datenstand: 2025</div>
+            <div class="pt-6 text-xs text-slate-500 font-mono">Version 48.0 • Datenstand: 2025</div>
         </div>
     </div>
 
@@ -81,7 +81,7 @@
     </div>
 
     <!-- POPULATION BOX -->
-    <div id="total-pop-display" class="absolute top-36 left-4 z-[1000] glass-panel p-4 rounded-xl shadow-lg hidden w-52 border-l-4 border-blue-500 transition-all">
+    <div id="total-pop-display" class="absolute top-36 left-4 z-[1000] glass-panel p-4 rounded-xl shadow-lg hidden w-56 border-l-4 border-blue-500 transition-all">
         <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Bevölkerung Saarland</div>
         <div class="text-2xl font-extrabold text-slate-800 tabular-nums" id="total-pop-value">---</div>
         <div class="text-[10px] text-slate-500 mt-1 text-right font-mono" id="total-pop-year">Jahr: 2024</div>
@@ -123,60 +123,51 @@
         let currentViewMode = 'details', currentMode = 'history', currentYear = 2024;
         function closeWelcome() { document.getElementById('welcome-overlay').classList.add('hidden-overlay'); setTimeout(() => map.flyTo([49.38, 6.98], 10.5, { duration: 2.5 }), 300); }
 
-        // GEOJSON FALLBACK
-        const fallbackBorder = [[49.626,6.912],[49.630,6.925],[49.633,6.945],[49.639,7.010],[49.640,7.035],[49.639,7.055],[49.628,7.085],[49.612,7.105],[49.600,7.115],[49.582,7.145],[49.570,7.180],[49.555,7.225],[49.542,7.265],[49.525,7.295],[49.500,7.325],[49.480,7.345],[49.455,7.385],[49.425,7.425],[49.385,7.435],[49.355,7.425],[49.325,7.405],[49.305,7.385],[49.285,7.365],[49.265,7.375],[49.245,7.355],[49.225,7.305],[49.200,7.320],[49.180,7.360],[49.160,7.380],[49.140,7.350],[49.125,7.300],[49.115,7.250],[49.120,7.180],[49.135,7.120],[49.120,7.090],[49.110,7.050],[49.118,7.020],[49.135,6.990],[49.155,6.960],[49.175,6.930],[49.190,6.890],[49.175,6.860],[49.165,6.820],[49.160,6.790],[49.175,6.760],[49.195,6.730],[49.215,6.710],[49.235,6.690],[49.260,6.630],[49.300,6.610],[49.340,6.660],[49.380,6.640],[49.420,6.590],[49.460,6.450],[49.475,6.360],[49.490,6.370],[49.530,6.440],[49.545,6.490],[49.555,6.530],[49.545,6.580],[49.555,6.6200],[49.575,6.680],[49.590,6.750],[49.610,6.850],[49.626,6.912]];
-        
-        // --- DATEN ---
+        // --- GRENZDATEN (Fallback, stark vereinfacht um Code-Größe zu sparen) ---
+        const fallbackBorder = [[49.62,6.91],[49.64,7.04],[49.58,7.15],[49.55,7.23],[49.45,7.39],[49.35,7.43],[49.22,7.31],[49.12,7.18],[49.12,7.05],[49.16,6.96],[49.16,6.79],[49.23,6.69],[49.34,6.66],[49.42,6.59],[49.47,6.36],[49.55,6.49],[49.62,6.91]];
+
         const saarlandPopData = {1926:769300,1927:772700,1930:794500,1935:814576,1939:824000,1946:857630,1950:948716,1955:996238,1960:1060493,1965:1127354,1970:1121300,1974:1103255,1980:1066299,1985:1045936,1990:1072963,1995:1084370,2000:1068703,2005:1050293,2010:1017567,2015:995597,2020:983991,2024:1012141};
         const overviewLines = { mining: {name:"Kohlegürtel",color:"#ef4444",path:[[49.180,6.800],[49.250,6.850],[49.290,6.980],[49.310,7.060],[49.350,7.120],[49.370,7.250]]}, steel: {name:"Stahlachse",color:"#475569",path:[[49.350,6.740],[49.250,6.840],[49.240,6.940],[49.220,7.030],[49.280,7.120],[49.345,7.180],[49.325,7.335]]}};
 
+        // --- DATEN (Bilder & Urheber aktualisiert aus PDF) ---
         const historyData={
             mines:[
-                {id:"m1",name:"Bergwerk Saar / Ensdorf",coords:[49.3188,6.7780],type:"Kohle",period:"1833-2012",desc:"Das letzte aktive Bergwerk des Saarlandes. Am 30.06.2012 endete hier die Ära des Steinkohlebergbaus nach einem Beschluss zum Kohleausstieg. Bekannt ist der Standort heute für das 'Saarpolygon', ein Denkmal auf der Halde Duhamel, das an die Bergbauvergangenheit erinnert.", img:"img/ensdorf.jpg", copyright:"Foto: © Eigener Name / Lizenz"},
-                {id:"m2",name:"Grube Göttelborn",coords:[49.3548,7.0335],type:"Kohle",period:"1887-2000",desc:"Einst eine der modernsten Gruben Europas, bekannt als der 'Weiße Riese'. Der markante Förderturm von Schacht IV ist das höchste Fördergerüst des Saarlandes.", img:"img/goettelborn.jpg", copyright:"Foto: Wikimedia Commons"},
-                {id:"m3",name:"Grube Reden",coords:[49.3493,7.1132],type:"Kohle",period:"1846-1995",desc:"Traditionsreiche Anlage. Heute Standort des Freizeitparks 'Gondwana – Das Praehistorium' und wichtig für die zentrale Wasserhaltung im Saarrevier.", img:"img/reden.jpg", copyright:""},
-                {id:"m4",name:"Grube Camphausen",coords:[49.3065,7.0074],type:"Kohle",period:"1871-1990",desc:"Architektonisch herausragend durch den Hammerkopfturm im Backstein-Expressionismus. Lange Zeit eine der förderstärksten Gruben im Fischbachtal.", img:"img/camphausen.jpg", copyright:""},
-                {id:"m5",name:"Grube Luisenthal",coords:[49.2477,6.8938],type:"Kohle",period:"1820-2005",desc:"Tiefstes Bergwerk der Saar. Traurige Bekanntheit durch das schwere Grubenunglück 1962. Wurde 2005 mit Warndt zusammengelegt.", img:"img/luisenthal.jpg", copyright:""},
-                {id:"m6",name:"Grube Warndt",coords:[49.1864,6.8097],type:"Kohle",period:"1963-2005",desc:"Das jüngste Großbergwerk des Reviers, geplant in den 1950ern, um die reichen Kohlevorkommen unter dem Warndt zu erschließen.", img:"img/warndt.jpg", copyright:""},
-                {id:"m7",name:"Grube Velsen",coords:[49.2219,6.8363],type:"Kohle",period:"1899-2005",desc:"Bekannt für ihre beeindruckende Kaffeeküche und Architektur. Heute ein beliebtes Erlebnisbergwerk für Besucher.", img:"img/velsen.jpg", copyright:""},
-                {id:"m8",name:"Grube Itzenplitz",coords:[49.3542,7.0869],type:"Kohle",period:"1856-1960",desc:"Besitzt das älteste erhaltene Fördergerüst des Saarlandes. Die Anlage liegt malerisch am Itzenplitzer Weiher im Heiligenwald.", img:"img/itzenplitz.jpg", copyright:""},
-                {id:"m9",name:"Grube Dechen",coords:[49.3378,7.1722],type:"Kohle",period:"1854-1968",desc:"Essentiell für die Koks-Versorgung der Neunkircher Hütte.", img:"", copyright:""},
-                {id:"m10",name:"Grube Heinitz",coords:[49.3300,7.1300],type:"Kohle",period:"1847-1964",desc:"Traditionsreiche Staatsgrube bei Neunkirchen.", img:"", copyright:""},
-                {id:"m11",name:"Grube König",coords:[49.3450,7.1750],type:"Kohle",period:"1820-1968",desc:"Zentral in Neunkirchen gelegen. Eng mit dem Eisenwerk verbunden, prägte sie die industrielle Identität der Stadt.", img:"", copyright:""},
-                {id:"m12",name:"Grube Frankenholz",coords:[49.3702,7.2405],type:"Kohle",period:"1879-1959",desc:"Ehemals die tiefste Grube der Pfalz (damals bayrisch). Bekannt für schwierige geologische Verhältnisse.", img:"", copyright:""},
-                {id:"m13",name:"Grube St. Ingbert",coords:[49.2830,7.1180],type:"Kohle",period:"1852-1959",desc:"Der 'Rischbachstollen' ist heute ein Besucherbergwerk. Eine der ältesten Gruben der Region, förderte hochwertige Fettkohle.", img:"img/rischbachstollen.jpg", copyright:""},
-                {id:"m14",name:"Grube Maybach",coords:[49.3205,7.0632],type:"Kohle",period:"1873-1964",desc:"Benannt nach Albert von Maybach. Später mit Reden verbunden. Bekannt für den Marie-Juchacz-Schacht.", img:"", copyright:""},
-                {id:"m15",name:"Grube Viktoria",coords:[49.2927,6.8882],type:"Kohle",period:"1866-1963",desc:"Die 'Köllertal-Metropole'. Wichtigster Arbeitgeber in Püttlingen, sorgte für den Ausbau der Infrastruktur im Köllertal.", img:"", copyright:""},
-                {id:"m16",name:"Grube Von der Heydt",coords:[49.2688,6.9575],type:"Kohle",period:"1850-1965",desc:"Idyllische Waldgrube mit eigener Arbeitersiedlung und Waldbahnhof. Benannt nach August von der Heydt.", img:"img/vonderheydt.jpg", copyright:""},
-                {id:"m17",name:"Grube Jägersfreude",coords:[49.2610,7.0050],type:"Kohle",period:"1856-1968",desc:"Direkt an der Hauptbahnlinie bei Saarbrücken gelegen. Bekannt für Koks-Produktion und gute Verkehrsanbindung.", img:"", copyright:""},
-                {id:"m18",name:"Grube Kohlwald",coords:[49.3680,7.1980],type:"Kohle",period:"1842-1966",desc:"Grenzgrube bei Wiebelskirchen zur Pfalz. Das Gelände ist heute ein Naturdenkmal mit weiter Aussicht.", img:"", copyright:""},
-                {id:"m19",name:"Grube Hirschbach",coords:[49.2850,7.0450],type:"Kohle",period:"1816-1950",desc:"Eine der ältesten Gruben in Dudweiler. Das Gelände wurde renaturiert und dient heute als Naherholungsgebiet.", img:"", copyright:""},
-                {id:"m26",name:"Grube Altenwald",coords:[49.3100,7.0800],type:"Kohle",period:"1851-1932",desc:"Sulzbach. Hatte eine enge Verbindung zur Sulzbacher Hütte. Förderende 1932, danach Wasserhaltung.", img:"", copyright:""},
-                {id:"m29",name:"Grube Reisbach",coords:[49.3800,6.9000],type:"Kohle",period:"1962-2000",desc:"Eine der wenigen Privatgruben (Dr. Arnold Schäfer) im Saarland (bei Labach/Saarwellingen). Sie existierte noch lange nach der Gründung der Saarbergwerke AG.", img:"", copyright:""},
-                {id:"m30",name:"Grube Hostenbach",coords:[49.2600,6.7800],type:"Kohle",period:"1750-1932",desc:"Wadgassen. Eine der ältesten Gruben des Landes, eng verbunden mit der Industrialisierung im Bisttal.", img:"", copyright:""},
-                {id:"m31",name:"Grube Mellin",coords:[49.3050,7.0650],type:"Kohle",period:"1856-1932",desc:"Sulzbach. Bekannt für das neugotische Ensemble der Tagesanlagen, eines der schönsten Industriedenkmäler des Saarlandes.", img:"", copyright:""}
+                {id:"m1",name:"Bergwerk Saar / Ensdorf",coords:[49.3188,6.7780],type:"Kohle",period:"1833-2012",desc:"Das letzte aktive Bergwerk des Saarlandes. Bekannt für das 'Saarpolygon'.", img:"img/ensdorf.jpg", copyright:"Foto: Josef Dernbercher"},
+                {id:"m2",name:"Grube Göttelborn",coords:[49.3548,7.0335],type:"Kohle",period:"1887-2000",desc:"Einst eine der modernsten Gruben Europas, bekannt als der 'Weiße Riese'.", img:"img/goettelborn.jpg", copyright:"Foto: Mark Scheider"},
+                {id:"m3",name:"Grube Reden",coords:[49.3493,7.1132],type:"Kohle",period:"1846-1995",desc:"Traditionsreiche Anlage, heute 'Gondwana'.", img:"img/reden.jpg", copyright:"Foto: Alain Meier"},
+                {id:"m4",name:"Grube Camphausen",coords:[49.3065,7.0074],type:"Kohle",period:"1871-1990",desc:"Architektonisch herausragend durch den Hammerkopfturm.", img:"img/camphausen.jpg", copyright:"Foto: Flocci Nivis"},
+                {id:"m5",name:"Grube Luisenthal",coords:[49.2477,6.8938],type:"Kohle",period:"1820-2005",desc:"Tiefstes Bergwerk der Saar. Traurige Bekanntheit durch das Unglück 1962.", img:"img/luisenthal.jpg", copyright:"Foto: LoKiLeCh"},
+                {id:"m6",name:"Grube Warndt",coords:[49.1864,6.8097],type:"Kohle",period:"1963-2005",desc:"Das jüngste Großbergwerk des Reviers im Warndt.", img:"img/warndt.jpg", copyright:"Foto: Ducky88"},
+                {id:"m7",name:"Grube Velsen",coords:[49.2219,6.8363],type:"Kohle",period:"1899-2005",desc:"Bekannt für ihre Kaffeeküche. Heute Erlebnisbergwerk.", img:"img/velsen.jpg", copyright:"Foto: Unbekannt"},
+                {id:"m8",name:"Grube Itzenplitz",coords:[49.3542,7.0869],type:"Kohle",period:"1856-1960",desc:"Besitzt das älteste erhaltene Fördergerüst des Saarlandes.", img:"img/itzenplitz.jpg", copyright:"Foto: Elmar Ersch"},
+                {id:"m9",name:"Grube Dechen",coords:[49.3378,7.1722],type:"Kohle",period:"1854-1968",desc:"Essentiell für die Koks-Versorgung der Neunkircher Hütte.", img:"img/dechen.jpg", copyright:"Foto: Zecke64"},
+                {id:"m10",name:"Grube Heinitz",coords:[49.3300,7.1300],type:"Kohle",period:"1847-1964",desc:"Traditionsreiche Staatsgrube bei Neunkirchen.", img:"img/heinitz.jpg", copyright:"Foto: Gripweed"},
+                {id:"m11",name:"Grube König",coords:[49.3450,7.1750],type:"Kohle",period:"1820-1968",desc:"Zentral in Neunkirchen gelegen, prägte die Stadt.", img:"img/koenig.jpg", copyright:"Foto: Carl Heinrich Jacobi"},
+                {id:"m12",name:"Grube Frankenholz",coords:[49.3702,7.2405],type:"Kohle",period:"1879-1959",desc:"Einst tiefste Grube der Pfalz.", img:"img/frankenholz.jpg", copyright:"Foto: Unbekannt"},
+                {id:"m13",name:"Grube St. Ingbert",coords:[49.2830,7.1180],type:"Kohle",period:"1852-1959",desc:"Rischbachstollen (Besucherbergwerk).", img:"img/inbert.jpg", copyright:"Foto: Christian Bohr"},
+                {id:"m14",name:"Grube Maybach",coords:[49.3205,7.0632],type:"Kohle",period:"1873-1964",desc:"Bekannt für den Marie-Juchacz-Schacht.", img:"img/maybach.jpg", copyright:"Foto: Unbekannt"},
+                {id:"m15",name:"Grube Viktoria",coords:[49.2927,6.8882],type:"Kohle",period:"1866-1963",desc:"Die 'Köllertal-Metropole'.", img:"img/viktoria.jpg", copyright:"Foto: Kallewirsch"},
+                {id:"m16",name:"Grube Von der Heydt",coords:[49.2688,6.9575],type:"Kohle",period:"1850-1965",desc:"Idyllische Waldgrube mit eigener Arbeitersiedlung.", img:"img/heydt.jpg", copyright:"Foto: Unbekannt"},
+                {id:"m17",name:"Grube Jägersfreude",coords:[49.2610,7.0050],type:"Kohle",period:"1856-1968",desc:"Direkt an der Bahnlinie Saarbrücken.", img:"img/jaegersfreude.jpg", copyright:"Foto: Flocci Nivis"},
+                {id:"m18",name:"Grube Kohlwald",coords:[49.3680,7.1980],type:"Kohle",period:"1842-1966",desc:"Grenzgrube bei Wiebelskirchen.", img:"img/kohlwald.jpg", copyright:"Foto: Georg Diancourt"},
+                {id:"m19",name:"Grube Hirschbach",coords:[49.2850,7.0450],type:"Kohle",period:"1816-1950",desc:"Eine der ältesten Gruben in Dudweiler.", img:"img/hirschbach.jpg", copyright:"Foto: Zecke64"},
+                {id:"m26",name:"Grube Altenwald",coords:[49.3100,7.0800],type:"Kohle",period:"1851-1932",desc:"Sulzbach. Die Kohleförderung endete 1932.", img:"img/altenwald.jpg", copyright:"Foto: Unbekannt"},
+                {id:"m29",name:"Grube Reisbach",coords:[49.3800,6.9000],type:"Kohle",period:"1962-2000",desc:"Privatgrube Dr. Arnold Schäfer.", img:"img/reisbach.jpg", copyright:"Foto: Flocci Nivis"},
+                {id:"m30",name:"Grube Hostenbach",coords:[49.2600,6.7800],type:"Kohle",period:"1750-1932",desc:"Wadgassen. Eine der ältesten Gruben des Landes.", img:"img/hostenbach.jpg", copyright:"Foto: Zecke64"},
+                {id:"m31",name:"Grube Mellin",coords:[49.3050,7.0650],type:"Kohle",period:"1856-1932",desc:"Sulzbach. Bekannt für das neugotische Ensemble.", img:"img/mellin.jpg", copyright:"Foto: Flocci Nivis"}
             ],
             steel:[
-                {id:"s1",name:"Völklinger Hütte",coords:[49.2485,6.8442],type:"Stahl",period:"UNESCO",desc:"Gegründet 1873. Die Roheisenproduktion wurde 1986 eingestellt. 1994 erklärte die UNESCO die Hütte zum Weltkulturerbe, da sie das weltweit einzige vollständig erhaltene Eisenwerk aus der Blütezeit der Industrialisierung ist.", img:"img/voelklingen.jpg", copyright:""},
-                {id:"s2",name:"Dillinger Hütte",coords:[49.3480,6.7450],type:"Stahl",period:"Aktiv",desc:"Gegründet 1685, ist sie die älteste Aktiengesellschaft Deutschlands. Sie ist weltweiter Marktführer für hochwertige Grobbleche, die u.a. in Brücken und Windkraftanlagen verbaut werden.", img:"img/dillingen.jpg", copyright:""},
-                {id:"s3",name:"Neunkircher Eisenwerk",coords:[49.3455,7.1780],type:"Stahl",period:"1593-1982",desc:"Unter der Ära der Familie Stumm dominierte das Werk die Stadt Neunkirchen völlig. 1982 wurde der letzte Hochofen ausgeblasen. Teile der Anlage sind als Industriedenkmal erhalten.", img:"img/neunkirchen.jpg", copyright:""},
-                {id:"s4",name:"Halberger Hütte",coords:[49.2180,7.0300],type:"Stahl",period:"Aktiv",desc:"Traditionsreicher Standort in Brebach-Fechingen, spezialisiert auf Gussrohre und Kurbelgehäuse für die Automobilindustrie (Halberg Guss).", img:"", copyright:""},
-                {id:"s5",name:"Burbacher Hütte",coords:[49.2420,6.9350],type:"Stahl",period:"Aktiv",desc:"Gegründet 1856. Heute ein wichtiger Standort von Saarstahl, spezialisiert auf Draht und Stabstahl. Die Hütte prägte den Saarbrücker Stadtteil Burbach maßgeblich.", img:"", copyright:""},
-                {id:"s6",name:"Alte Schmelz",coords:[49.2750,7.1050],type:"Eisen",period:"1733-1991",desc:"Ein bedeutendes Industriedenkmal. Hier wurde Eisenverarbeitung betrieben, die St. Ingbert zur Industriestadt machte. Die historischen Gebäude werden heute kulturell genutzt.", img:"img/alteschmelz.jpg", copyright:""},
-                {id:"s7",name:"Eisenwerk Homburg",coords:[49.3250,7.3350],type:"Eisen",period:"19. Jh.",desc:"Wichtiger Standort für die pfälzisch-saarländische Eisenindustrie im 19. Jahrhundert, der die wirtschaftliche Bedeutung Homburgs stärkte.", img:"", copyright:""},
-                {id:"s8",name:"Mariahütte",coords:[49.6050,6.9650],type:"Eisen",period:"ab 17. Jh.",desc:"Eine der ältesten Hütten im Hochwaldraum (Nonnweiler). Sie nutzte die Wasserkraft der Prims und lokale Erzvorkommen.", img:"", copyright:""},
-                {id:"s9",name:"Hubertushütte",coords:[49.5800,6.9500],type:"Eisen",period:"1748-1868",desc:"Bierfeld (Nonnweiler). Eine weitere historische Hütte im Hochwald, die lokale Erze verarbeitete.", img:"", copyright:""},
-                {id:"s10",name:"Geislauterner Eisenwerk",coords:[49.2350,6.8300],type:"Eisen",period:"1585-1875",desc:"Wiege der saarländischen Eisenindustrie in Völklingen. Hier soll der erste Koks-Hochofen des Reviers gestanden haben.", img:"", copyright:""},
-                {id:"s11",name:"Eisenwerk Bettingen",coords:[49.4350,6.8600],type:"Eisen",period:"1686-1868",desc:"Namensgeber für den Ort 'Schmelz'. Ein bedeutendes Werk der frühen Eisenindustrie im Primsraum.", img:"", copyright:""},
-                {id:"s12",name:"Aschbacher Eisenwerk",coords:[49.2300,6.9100],type:"Eisen",period:"1724-1860",desc:"Gersweiler. Eine typische Hütte der Barockzeit, die lokale Erze und Holzkohle nutzte.", img:"", copyright:""},
-                {id:"s13",name:"Fischbacher Schmelze",coords:[49.3150,7.0400],type:"Eisen",period:"1728-1860",desc:"Frühindustrielle Anlage im Fischbachtal, bevor der Kohlebergbau dominierte.", img:"", copyright:""},
-                {id:"s14",name:"Goffontaine",coords:[49.2250,7.0500],type:"Eisen",period:"18. Jh.",desc:"Schafbrücke. Bekannt für den Drahtzug und die Eisenverarbeitung vor den Toren Saarbrückens.", img:"", copyright:""},
-                {id:"s15",name:"Wadgasser Hütte",coords:[49.2700,6.7900],type:"Eisen/Glas",period:"17.-19. Jh.",desc:"Ursprünglich Eisenverarbeitung, später weltberühmt für Kristallglas (Villeroy & Boch).", img:"", copyright:""},
-                {id:"s16",name:"Karlsbrunner Hütte",coords:[49.1850,6.8300],type:"Eisen",period:"18. Jh.",desc:"Im Warndt gelegen, nah beim Jagdschloss Karlsbrunn. Nutzte die reichen Holzvorkommen des Warndtwaldes.", img:"", copyright:""},
-                {id:"s18",name:"Hütte Wecklingen",coords:[49.2300,7.2500],type:"Eisen",period:"18. Jh.",desc:"Kleine historische Anlage im Bliestal (Blieskastel).", img:"", copyright:""},
-                {id:"s19",name:"St. Ingberter Eisenwerk",coords:[49.2800,7.1200],type:"Eisen",period:"19. Jh.",desc:"Neben der Alten Schmelz ein weiterer wichtiger Standort für Draht- und Nagelproduktion.", img:"", copyright:""},
-                {id:"s20",name:"Röhrenwerke Bous",coords:[49.2750,6.8050],type:"Stahl",period:"Aktiv",desc:"Mannesmann Röhrenwerke. Spezialisiert auf die Herstellung nahtloser Stahlrohre.", img:"", copyright:""},
-                {id:"s21",name:"Hüttigweiler",coords:[49.3880,7.0800],type:"Eisen",period:"Mittelalter",desc:"Historischer Standort in Illingen. Der Ortsname verweist auf eine frühe Hütte (Schmelze) oder Siedlung bei einer Hütte.", img:"", copyright:""}
+                {id:"s1",name:"Völklinger Hütte",coords:[49.2485,6.8442],type:"Stahl",period:"UNESCO",desc:"Weltkulturerbe seit 1994.", img:"img/voelklingen.jpg", copyright:"Foto: TeKaBe"},
+                {id:"s2",name:"Dillinger Hütte",coords:[49.3480,6.7450],type:"Stahl",period:"Aktiv",desc:"Grobblech-Spezialist, gegr. 1685.", img:"img/dillingen.jpg", copyright:"Foto: Borchel"},
+                {id:"s3",name:"Neunkircher Eisenwerk",coords:[49.3455,7.1780],type:"Stahl",period:"1593-1982",desc:"Dominierte das Stadtbild Neunkirchens.", img:"img/neunkirchen.jpg", copyright:"Foto: Pierre Lemoine"},
+                {id:"s4",name:"Halberger Hütte",coords:[49.2180,7.0300],type:"Stahl",period:"Aktiv",desc:"Brebach. Gussrohre und Motorteile.", img:"img/halberg.jpg", copyright:"Foto: AnRo0002"},
+                {id:"s5",name:"Burbacher Hütte",coords:[49.2420,6.9350],type:"Stahl",period:"Aktiv",desc:"Saarbrücken-Burbach. Drahtstraße.", img:"img/burbach.jpg", copyright:"Foto: NobbiP"},
+                {id:"s6",name:"Alte Schmelz",coords:[49.2750,7.1050],type:"Eisen",period:"1733-1991",desc:"Industriedenkmal St. Ingbert.", img:"img/alteschmelz.jpg", copyright:"Foto: Conny Liegl"},
+                {id:"s7",name:"Eisenwerk Homburg",coords:[49.3250,7.3350],type:"Eisen",period:"19. Jh.",desc:"Wichtiger Standort für die pfälzisch-saarländische Eisenindustrie.", img:"img/homburg.jpg", copyright:"Foto: Bezirksamt rentamt"},
+                {id:"s8",name:"Mariahütte",coords:[49.6050,6.9650],type:"Eisen",period:"ab 17. Jh.",desc:"Eine der ältesten Hütten im Hochwald.", img:"img/mariahuette.jpg", copyright:"Foto: Leiflive"},
+                {id:"s10",name:"Geislauterner Eisenwerk",coords:[49.2350,6.8300],type:"Eisen",period:"1585-1875",desc:"Wiege der saarländischen Eisenindustrie.", img:"img/geislautern.jpg", copyright:"Foto: Zecke64"},
+                {id:"s11",name:"Eisenwerk Bettingen",coords:[49.4350,6.8600],type:"Eisen",period:"1686-1868",desc:"Namensgeber für den Ort 'Schmelz'.", img:"img/schmelz.jpg", copyright:"Foto: Conny Liegl"},
+                {id:"s21",name:"Hüttigweiler",coords:[49.3880,7.0800],type:"Eisen",period:"Mittelalter",desc:"Historischer Standort in Illingen.", img:"", copyright:""}
             ]
         };
 
@@ -191,7 +182,10 @@
             { name: "St. Ingbert", coords: [49.2800, 7.1200], desc: "Biosphäre", history: { 1926:20000, 1950:27000, 1970:29000, 1974:40000, 1990:39000, 2024:35500 }},
             { name: "Merzig", coords: [49.4419, 6.6378], desc: "Kreisstadt", history: { 1926:10000, 1950:14000, 1970:16000, 1974:28000, 1990:31000, 2024:30000 }},
             { name: "St. Wendel", coords: [49.4667, 7.1667], desc: "Wirtschaftszentrum Nord", history: { 1926:8000, 1950:11000, 1970:12000, 1974:27000, 1990:27000, 2024:25500 }},
-            { name: "Dillingen", coords: [49.3500, 6.7333], desc: "Hüttenstadt", history: { 1926:9000, 1950:18000, 1965:21000, 1974:24000, 1990:22000, 2024:20000 }}
+            { name: "Dillingen", coords: [49.3500, 6.7333], desc: "Hüttenstadt", history: { 1926:9000, 1950:18000, 1965:21000, 1974:24000, 1990:22000, 2024:20000 }},
+            { name: "Wadern", coords: [49.539, 6.893], desc: "Mittelzentrum Hochwald", history: { 1926:12000, 1950:13500, 1974:15000, 1990:15800, 2024:15700 }},
+            { name: "Losheim am See", coords: [49.510, 6.745], desc: "Tourismus & Gewerbe", history: { 1926:11000, 1950:13000, 1974:15000, 1990:16000, 2024:16000 }},
+            { name: "Nonnweiler", coords: [49.606, 7.005], desc: "Nationalpark-Gemeinde", history: { 1926:7000, 1950:8000, 1974:9500, 1990:9200, 2024:8500 }}
         ];
 
         const transportData = [
@@ -229,7 +223,8 @@
             if(year<=years[0]) return history[years[0]]; if(year>=years[years.length-1]) return history[years[years.length-1]];
             let prev=years[0], next=years[years.length-1];
             for(let y of years) { if(y<=year) prev=y; if(y>year) { next=y; break; } }
-            return Math.round(history[prev] + (year-prev)/(next-prev) * (history[next]-history[prev]));
+            const fraction = (year-prev)/(next-prev);
+            return Math.round(history[prev] + fraction * (history[next]-history[prev]));
         }
 
         function updateUrbanMap(val) {
@@ -242,10 +237,7 @@
             const badge = document.getElementById('reform-badge');
             if (currentYear >= 1973 && currentYear <= 1975) { badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
             
-            // Refresh urban rendering if active
-            if (currentMode === 'urban') {
-                 clearMap(); renderUrban(); 
-            }
+            if (currentMode === 'urban') { clearMap(); renderUrban(); }
         }
 
         function expandSidebarItem(id) {
@@ -314,7 +306,6 @@
                 overlayInfo.className = "mt-4 p-2 border-t border-slate-200 text-[10px] text-slate-400 text-center uppercase tracking-wider"; 
                 overlayInfo.innerHTML = "Industrieachsen eingeblendet"; 
                 containerList.appendChild(overlayInfo); 
-                
                 containerList.appendChild(createSimpleListItem("Kohlegürtel", "Historische Hauptachse", "#ef4444", () => map.fitBounds(miningLine.getBounds())));
                 containerList.appendChild(createSimpleListItem("Stahlachse", "Industrielle Tallagen", "#475569", () => map.fitBounds(steelLine.getBounds())));
             }
@@ -326,10 +317,11 @@
             let html = '';
             if (mode === 'transport') { panel.classList.add('hidden'); panel.classList.remove('md:block'); return; }
             panel.classList.remove('hidden'); panel.classList.add('md:block');
-            const borderLegend = `<div class="flex items-center gap-2.5 mt-2 pt-2 border-t border-slate-100"><span class="w-6 h-0 border-t-2 border-dashed border-slate-400"></span><span class="text-slate-500">Grobe Landesgrenze</span></div>`;
+            const borderLegend = `<div class="flex items-center gap-2.5 mt-2 pt-2 border-t border-slate-100"><span class="w-6 h-0 border-t-2 border-dashed border-slate-400"></span><span class="text-slate-500">Landesgrenze</span></div>`;
 
             if (mode === 'history') {
                 html = `<div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-red-500 border border-white shadow-sm"></span><span>Steinkohlebergwerk</span></div>
+                        <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-orange-500 border border-white shadow-sm"></span><span>Erz-/Kalkbergwerk</span></div>
                         <div class="flex items-center gap-2.5"><span class="w-3 h-3 rounded-full bg-slate-600 border border-white shadow-sm"></span><span>Stahl-/Hüttenwerk</span></div>`;
                 if (currentViewMode === 'overview') {
                      html += `<div class="mt-2 pt-2 border-t border-slate-100"><div class="flex items-center gap-2.5"><span class="w-4 h-1 bg-red-500 rounded-full opacity-50"></span><span class="text-[10px] text-slate-500">Kohlegürtel (in Übersicht)</span></div><div class="flex items-center gap-2.5"><span class="w-4 h-1 bg-slate-600 rounded-full opacity-50"></span><span class="text-[10px] text-slate-500">Stahlachse (in Übersicht)</span></div></div>`;
@@ -485,13 +477,12 @@
             const timeSlider = document.getElementById('time-slider-container');
             const popDisplay = document.getElementById('total-pop-display');
             
-            // ALWAYS SHOW VIEW CONTROL
             viewCtrl.classList.remove('hidden'); 
-            
             timeSlider.classList.add('hidden');
             popDisplay.classList.add('hidden');
 
             if(mode === 'urban') { 
+                viewCtrl.classList.remove('hidden'); 
                 timeSlider.classList.remove('hidden'); 
                 popDisplay.classList.remove('hidden');
                 if(!currentViewMode) currentViewMode = 'details';
