@@ -44,12 +44,38 @@
         /* Language Switcher Styles */
         .lang-btn { opacity: 0.5; transition: opacity 0.2s; }
         .lang-btn.active { opacity: 1; font-weight: 800; text-decoration: underline; text-decoration-color: #3b82f6; text-underline-offset: 4px; }
+        
+        /* Welcome Switcher Specifics */
+        .welcome-lang-btn { 
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.3); 
+            color: rgba(255,255,255,0.8);
+            transition: all 0.2s ease-out;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .welcome-lang-btn:hover { 
+            background: rgba(255,255,255,0.25); 
+            color: white;
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,0.6);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+        .welcome-lang-btn.active { 
+            background: white; 
+            color: #0f172a; 
+            border-color: white; 
+            font-weight: 800; 
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body class="relative h-screen w-screen text-slate-800">
 
     <!-- 1. WELCOME OVERLAY -->
     <div id="welcome-overlay" class="absolute inset-0 z-[9999] bg-slate-900/95 backdrop-blur-md flex items-center justify-center text-white p-6 transition-overlay overlay-visible">
+        
         <div class="max-w-5xl w-full flex flex-col items-center space-y-10 fade-in-up">
             <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 w-full">
                 <div class="flex flex-col items-center gap-2 group">
@@ -74,11 +100,21 @@
                 Wie hat die Ära der <span class="text-red-400 font-medium border-b border-red-400/30">Schwerindustrie</span> das Gesicht des <span class="text-blue-400 font-medium border-b border-blue-400/30">heutigen Saarlandes</span> geformt?
             </p>
             
-            <button onclick="showTutorial()" class="mt-12 px-10 py-4 bg-white text-slate-900 rounded-full font-bold text-xl shadow-lg hover:bg-blue-50 hover:scale-105 hover:shadow-[0_0_60px_rgba(255,255,255,0.4)] transition-all transform flex items-center gap-3 mx-auto">
+            <button onclick="showTutorial()" class="mt-4 px-10 py-4 bg-white text-slate-900 rounded-full font-bold text-xl shadow-lg hover:bg-blue-50 hover:scale-105 hover:shadow-[0_0_60px_rgba(255,255,255,0.4)] transition-all transform flex items-center gap-3 mx-auto">
                 <span data-i18n="btn_tutorial">Weiter zur Anleitung</span><i class="ph-bold ph-arrow-right"></i>
             </button>
+
+            <!-- NEW: Welcome Language Switcher moved here -->
+            <div class="mt-8 flex flex-col items-center gap-3 fade-in-up" style="animation-delay: 0.2s;">
+                <span class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Sprache / Language</span>
+                <div class="flex gap-3">
+                    <button onclick="setLanguage('de')" id="welcome-lang-de" class="welcome-lang-btn active w-14 h-10 flex items-center justify-center rounded-lg text-sm font-bold">DE</button>
+                    <button onclick="setLanguage('fr')" id="welcome-lang-fr" class="welcome-lang-btn w-14 h-10 flex items-center justify-center rounded-lg text-sm font-bold">FR</button>
+                    <button onclick="setLanguage('en')" id="welcome-lang-en" class="welcome-lang-btn w-14 h-10 flex items-center justify-center rounded-lg text-sm font-bold">EN</button>
+                </div>
+            </div>
             
-            <div class="pt-6 text-xs text-slate-500 font-mono">Version 61.1 • Tutorial i18n</div>
+            <div class="pt-6 text-xs text-slate-500 font-mono">Version 63.1 • Layout Fix</div>
         </div>
     </div>
 
@@ -88,7 +124,7 @@
             
             <h2 class="text-3xl font-bold mb-4 text-center" data-i18n="tut_title">So nutzt du den Atlas</h2>
             
-            <!-- NEW: Tutorial Language Switcher -->
+            <!-- Tutorial Language Switcher -->
             <div class="mb-10 p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 text-center max-w-lg mx-auto">
                 <p class="text-xs text-slate-400 mb-3 uppercase tracking-wider font-semibold">
                     Sprache wählen / Choisir la langue / Choose language
@@ -166,7 +202,7 @@
         </div>
     </div>
 
-    <!-- LANGUAGE SWITCHER (UPDATED) -->
+    <!-- LANGUAGE SWITCHER (MAIN APP) -->
     <div class="absolute top-4 right-4 z-[1001] glass-panel rounded-full px-4 py-2 flex gap-2 shadow-xl">
         <button onclick="setLanguage('de')" id="lang-de" class="lang-btn active text-sm font-bold text-slate-700 px-1">DE</button>
         <div class="w-px h-4 bg-slate-300 my-auto"></div>
@@ -389,6 +425,19 @@
             document.getElementById('lang-fr').classList.toggle('active', lang === 'fr');
             document.getElementById('lang-en').classList.toggle('active', lang === 'en');
             
+            // Toggle Welcome Buttons - NEW LOGIC for TILES
+            ['de', 'fr', 'en'].forEach(l => {
+                const wBtn = document.getElementById(`welcome-lang-${l}`);
+                if(wBtn) {
+                     // Toggle 'active' class
+                     if (l === lang) {
+                        wBtn.classList.add('active');
+                     } else {
+                        wBtn.classList.remove('active');
+                     }
+                }
+            });
+
             // Toggle Tutorial Buttons Style (Switch active class blue vs gray)
             ['de', 'fr', 'en'].forEach(l => {
                 const btn = document.getElementById(`tut-lang-${l}`);
