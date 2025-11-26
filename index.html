@@ -21,8 +21,10 @@
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #cbd5e1; border-radius: 2px; }
         .leaflet-popup-content-wrapper { border-radius: 12px; padding: 0; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
         .leaflet-popup-content { margin: 0 !important; width: 280px !important; }
+        
+        /* Details Content Animation - Increased Height for Long Text */
         .details-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
-        .details-content.open { max-height: 600px; transition: max-height 0.5s ease-in; }
+        .details-content.open { max-height: 1200px; transition: max-height 0.6s ease-in; }
         
         /* Overlay Animationen */
         .overlay-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -104,7 +106,7 @@
                 <span data-i18n="btn_tutorial">Weiter zur Anleitung</span><i class="ph-bold ph-arrow-right"></i>
             </button>
 
-            <!-- NEW: Welcome Language Switcher moved here -->
+            <!-- Welcome Language Switcher -->
             <div class="mt-8 flex flex-col items-center gap-3 fade-in-up" style="animation-delay: 0.2s;">
                 <span class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Sprache / Language</span>
                 <div class="flex gap-3">
@@ -114,7 +116,7 @@
                 </div>
             </div>
             
-            <div class="pt-6 text-xs text-slate-500 font-mono">Version 63.1 • Layout Fix</div>
+            <div class="pt-6 text-xs text-slate-500 font-mono">Version 65.0 • Full Data</div>
         </div>
     </div>
 
@@ -489,53 +491,398 @@
             return obj[currentLang] || obj['de'];
         }
 
+        // EXPANDED HISTORICAL DATA
         const historyData={
             mines:[
-                {id:"m1",name:"Bergwerk Saar / Ensdorf",coords:[49.3188,6.7780],type:"Kohle",period:"1833-2012",desc:{de:"Das letzte aktive Bergwerk des Saarlandes. Bekannt für das 'Saarpolygon'.", fr:"La dernière mine active de la Sarre. Connue pour le 'Polygone de la Sarre'.", en:"The last active mine in Saarland. Known for the 'Saar Polygon' monument."}, img:"img/ensdorf.jpg", copyright:"Foto: Josef Dernbercher"},
-                {id:"m2",name:"Grube Göttelborn",coords:[49.3548,7.0335],type:"Kohle",period:"1887-2000",desc:{de:"Einst eine der modernsten Gruben Europas, bekannt als der 'Weiße Riese'.", fr:"Autrefois l'une des mines les plus modernes d'Europe, connue sous le nom de 'Géant Blanc'.", en:"Once one of Europe's most modern mines, known as the 'White Giant'."}, img:"img/goettelborn.jpg", copyright:"Foto: Mark Scheider"},
-                {id:"m3",name:"Grube Reden",coords:[49.3493,7.1132],type:"Kohle",period:"1846-1995",desc:{de:"Traditionsreiche Anlage. Heute Standort des Freizeitparks 'Gondwana'.", fr:"Site traditionnel. Aujourd'hui parc de loisirs 'Gondwana'.", en:"Historic site. Now home to the 'Gondwana' theme park."}, img:"img/reden.jpg", copyright:"Foto: Alain Meier"},
-                {id:"m4",name:"Grube Camphausen",coords:[49.3065,7.0074],type:"Kohle",period:"1871-1990",desc:{de:"Architektonisch herausragend durch den Hammerkopfturm.", fr:"Remarquable par sa tour en forme de marteau.", en:"Architecturally outstanding due to its hammerhead tower."}, img:"img/camphausen.jpg", copyright:"Foto: Flocci Nivis"},
-                {id:"m5",name:"Grube Luisenthal",coords:[49.2477,6.8938],type:"Kohle",period:"1820-2005",desc:{de:"Tiefstes Bergwerk der Saar. Traurige Bekanntheit durch das Unglück 1962.", fr:"La mine la plus profonde de la Sarre. Tristement célèbre pour l'accident de 1962.", en:"Deepest mine in the Saar. Infamous for the 1962 disaster."}, img:"img/luisenthal.jpg", copyright:"Foto: LoKiLeCh"},
-                {id:"m6",name:"Grube Warndt",coords:[49.1864,6.8097],type:"Kohle",period:"1963-2005",desc:{de:"Das jüngste Großbergwerk des Reviers im Warndt.", fr:"La plus jeune grande mine de la région du Warndt.", en:"The youngest major mine in the Warndt district."}, img:"img/warndt.jpg", copyright:"Foto: Ducky88"},
-                {id:"m7",name:"Grube Velsen",coords:[49.2219,6.8363],type:"Kohle",period:"1899-2005",desc:{de:"Bekannt für ihre Kaffeeküche. Heute Erlebnisbergwerk.", fr:"Connue pour sa cuisine à café. Aujourd'hui mine d'aventure.", en:"Known for its coffee kitchen. Now an adventure mine."}, img:"img/velsen.jpg", copyright:"Foto: Unbekannt"},
-                {id:"m8",name:"Grube Itzenplitz",coords:[49.3542,7.0869],type:"Kohle",period:"1856-1960",desc:{de:"Besitzt das älteste erhaltene Fördergerüst des Saarlandes.", fr:"Possède le plus ancien chevalement conservé de la Sarre.", en:"Has the oldest preserved headframe in Saarland."}, img:"img/itzenplitz.jpg", copyright:"Foto: Elmar Ersch"},
-                {id:"m9",name:"Grube Dechen",coords:[49.3378,7.1722],type:"Kohle",period:"1854-1968",desc:{de:"Essentiell für die Koks-Versorgung der Neunkircher Hütte.", fr:"Essentielle pour l'approvisionnement en coke de l'usine de Neunkirchen.", en:"Essential for coke supply to the Neunkirchen ironworks."}, img:"img/dechen.jpg", copyright:"Foto: Zecke64"},
-                {id:"m10",name:"Grube Heinitz",coords:[49.3300,7.1300],type:"Kohle",period:"1847-1964",desc:{de:"Traditionsreiche Staatsgrube bei Neunkirchen.", fr:"Mine d'État traditionnelle près de Neunkirchen.", en:"Traditional state mine near Neunkirchen."}, img:"img/heinitz.jpg", copyright:"Foto: Gripweed"},
-                {id:"m11",name:"Grube König",coords:[49.3450,7.1750],type:"Kohle",period:"1820-1968",desc:{de:"Zentral in Neunkirchen gelegen, prägte die Stadt.", fr:"Située au centre de Neunkirchen, a marqué la ville.", en:"Centrally located in Neunkirchen, shaped the city."}, img:"img/koenig.jpg", copyright:"Foto: Carl Heinrich Jacobi"},
-                {id:"m12",name:"Grube Frankenholz",coords:[49.3702,7.2405],type:"Kohle",period:"1879-1959",desc:{de:"Einst tiefste Grube der Pfalz.", fr:"Autrefois la mine la plus profonde du Palatinat.", en:"Once the deepest mine in the Palatinate region."}, img:"img/frankenholz.jpg", copyright:"Foto: Unbekannt"},
-                {id:"m13",name:"Grube St. Ingbert",coords:[49.2830,7.1180],type:"Kohle",period:"1852-1959",desc:{de:"Rischbachstollen (Besucherbergwerk).", fr:"Galerie Rischbach (mine touristique).", en:"Rischbach Tunnel (visitor mine)."}, img:"img/inbert.jpg", copyright:"Foto: Christian Bohr"},
-                {id:"m14",name:"Grube Maybach",coords:[49.3205,7.0632],type:"Kohle",period:"1873-1964",desc:{de:"Bekannt für den Marie-Juchacz-Schacht.", fr:"Connue pour le puits Marie-Juchacz.", en:"Known for the Marie Juchacz shaft."}, img:"img/maybach.jpg", copyright:"Foto: Unbekannt"},
-                {id:"m15",name:"Grube Viktoria",coords:[49.2927,6.8882],type:"Kohle",period:"1866-1963",desc:{de:"Die 'Köllertal-Metropole'.", fr:"La 'Métropole de la vallée de Köller'.", en:"The 'Köllertal Metropolis'."}, img:"img/viktoria.jpg", copyright:"Foto: Kallewirsch"},
-                {id:"m16",name:"Grube Von der Heydt",coords:[49.2688,6.9575],type:"Kohle",period:"1850-1965",desc:{de:"Idyllische Waldgrube mit eigener Arbeitersiedlung.", fr:"Mine forestière idyllique avec sa propre cité ouvrière.", en:"Idyllic forest mine with its own workers' settlement."}, img:"img/vonderheydt.jpg", copyright:"Foto: Unbekannt"},
-                {id:"m17",name:"Grube Jägersfreude",coords:[49.2610,7.0050],type:"Kohle",period:"1856-1968",desc:{de:"Direkt an der Bahnlinie Saarbrücken.", fr:"Directement sur la ligne de chemin de fer de Sarrebruck.", en:"Located directly on the Saarbrücken railway line."}, img:"img/jaegersfreude.jpg", copyright:"Foto: Flocci Nivis"},
-                {id:"m18",name:"Grube Kohlwald",coords:[49.3680,7.1980],type:"Kohle",period:"1842-1966",desc:{de:"Grenzgrube bei Wiebelskirchen.", fr:"Mine frontalière près de Wiebelskirchen.", en:"Border mine near Wiebelskirchen."}, img:"img/kohlwald.jpg", copyright:"Foto: Georg Diancourt"},
-                {id:"m19",name:"Grube Hirschbach",coords:[49.2850,7.0450],type:"Kohle",period:"1816-1950",desc:{de:"Eine der ältesten Gruben in Dudweiler.", fr:"Une des plus anciennes mines de Dudweiler.", en:"One of the oldest mines in Dudweiler."}, img:"img/hirschbach.jpg", copyright:"Foto: Zecke64"},
-                {id:"m26",name:"Grube Altenwald",coords:[49.3100,7.0800],type:"Kohle",period:"1851-1932",desc:{de:"Sulzbach. Förderende 1932.", fr:"Sulzbach. Fin de l'extraction 1932.", en:"Sulzbach. Mining ended in 1932."}, img:"img/altenwald.jpg", copyright:"Foto: Unbekannt"},
-                {id:"m29",name:"Grube Reisbach",coords:[49.3800,6.9000],type:"Kohle",period:"1962-2000",desc:{de:"Privatgrube Dr. Arnold Schäfer.", fr:"Mine privée Dr. Arnold Schäfer.", en:"Private mine Dr. Arnold Schäfer."}, img:"img/reisbach.jpg", copyright:"Foto: Flocci Nivis"},
-                {id:"m30",name:"Grube Hostenbach",coords:[49.2600,6.7800],type:"Kohle",period:"1750-1932",desc:{de:"Wadgassen. Eine der ältesten Gruben des Landes.", fr:"Wadgassen. Une des plus anciennes mines du pays.", en:"Wadgassen. One of the oldest mines in the state."}, img:"img/hostenbach.jpg", copyright:"Foto: Zecke64"},
-                {id:"m31",name:"Grube Mellin",coords:[49.3050,7.0650],type:"Kohle",period:"1856-1932",desc:{de:"Sulzbach. Bekannt für das neugotische Ensemble.", fr:"Sulzbach. Connue pour son ensemble néo-gothique.", en:"Sulzbach. Known for its neo-gothic architecture."}, img:"img/mellin.jpg", copyright:"Foto: Flocci Nivis"}
+                {
+                    id:"m1",name:"Bergwerk Saar / Ensdorf",coords:[49.3188,6.7780],type:"Kohle",period:"1833-2012",
+                    desc:{
+                        de:"Ensdorf war das letzte aktive Kohlebergwerk des Saarlandes. Mit der Schließung am 30. Juni 2012 endete eine jahrhundertelange Ära. Der Hauptschacht 'Duhamel' wurde 2016 mit dem imposanten 'Saarpolygon' gekrönt – einer begehbaren Großskulptur, die heute als Symbol für den Strukturwandel weit über die Landesgrenzen hinaus bekannt ist.",
+                        fr:"Ensdorf était la dernière mine de charbon active de la Sarre. Avec sa fermeture le 30 juin 2012, une ère séculaire s'est achevée. Le puits principal 'Duhamel' est surmonté depuis 2016 par l'imposant 'Polygone de la Sarre' – une grande sculpture accessible qui symbolise aujourd'hui le changement structurel bien au-delà des frontières régionales.",
+                        en:"Ensdorf was the last active coal mine in Saarland. Its closure on June 30, 2012, marked the end of a centuries-old era. The main shaft 'Duhamel' was crowned in 2016 with the imposing 'Saar Polygon' – a walkable large-scale sculpture that now stands as a widely recognized symbol of structural change."
+                    }, 
+                    img:"img/ensdorf.jpg", copyright:"Foto: Josef Dernbercher"
+                },
+                {
+                    id:"m2",name:"Grube Göttelborn",coords:[49.3548,7.0335],type:"Kohle",period:"1887-2000",
+                    desc:{
+                        de:"Göttelborn galt als Musterzeche und war eine der modernsten Gruben Europas. Bekannt als der 'Weiße Riese' wegen ihrer hellen Fördergerüste und Gebäude. Nach der Stilllegung im Jahr 2000 wurde das Gelände in einen 'Industriekultur-Campus' und Solarpark umgewandelt. Der markante Förderturm von Schacht IV ist mit 90 Metern das höchste Fördergerüst des Reviers.",
+                        fr:"Göttelborn était considérée comme une mine modèle et l'une des plus modernes d'Europe. Connue sous le nom de 'Géant Blanc' en raison de ses chevalements et bâtiments clairs. Après sa fermeture en 2000, le site a été transformé en 'Campus de la culture industrielle' et en parc solaire. La tour d'extraction marquante du puits IV est, avec ses 90 mètres, la plus haute de la région.",
+                        en:"Göttelborn was considered a model mine and one of the most modern in Europe. Known as the 'White Giant' due to its bright headframes and buildings. After closing in 2000, the site was converted into an 'Industrial Culture Campus' and solar park. The striking winding tower of Shaft IV, at 90 meters, is the tallest headframe in the mining district."
+                    },
+                    img:"img/goettelborn.jpg", copyright:"Foto: Mark Scheider"
+                },
+                {
+                    id:"m3",name:"Grube Reden",coords:[49.3493,7.1132],type:"Kohle",period:"1846-1995",
+                    desc:{
+                        de:"Die Grube Reden in Schiffweiler war für ihre hochwertige Fettkohle bekannt. Heute ist das Gelände Standort des Freizeitparks 'Gondwana - Das Praehistorium'. Die ehemaligen Absinkweiher wurden in beeindruckende Wassergärten verwandelt. Architektonisch besticht die Anlage durch ihre Gebäude aus rotem Sandstein im Stil des Historismus.",
+                        fr:"La mine Reden à Schiffweiler était célèbre pour son charbon gras de haute qualité. Aujourd'hui, le site abrite le parc de loisirs 'Gondwana - Le Praehistorium'. Les anciens bassins de décantation ont été transformés en impressionnants jardins d'eau. L'architecture du site séduit par ses bâtiments en grès rouge de style historiciste.",
+                        en:"The Reden mine in Schiffweiler was famous for its high-quality bituminous coal. Today, the site hosts the 'Gondwana - The Praehistorium' theme park. The former settling ponds have been transformed into impressive water gardens. Architecturally, the complex is striking for its red sandstone buildings in the Historicist style."
+                    },
+                    img:"img/reden.jpg", copyright:"Foto: Alain Meier"
+                },
+                {
+                    id:"m4",name:"Grube Camphausen",coords:[49.3065,7.0074],type:"Kohle",period:"1871-1990",
+                    desc:{
+                        de:"Benannt nach dem preußischen Finanzminister Ludolf Camphausen. Die Grube ist berühmt für ihren architektonisch einzigartigen Hammerkopfturm aus Stahlbeton über Schacht IV, der 1911/12 als erster seiner Art weltweit errichtet wurde. Die Anlage steht heute unter Denkmalschutz und prägt die Silhouette des Fischbachtals.",
+                        fr:"Nommée d'après le ministre des finances prussien Ludolf Camphausen. La mine est célèbre pour sa tour en forme de marteau en béton armé au-dessus du puits IV, unique sur le plan architectural et construite en 1911/12 comme la première du genre au monde. Le site est aujourd'hui classé monument historique et marque la silhouette de la vallée de Fischbach.",
+                        en:"Named after Prussian Finance Minister Ludolf Camphausen. The mine is famous for its architecturally unique reinforced concrete hammerhead tower over Shaft IV, built in 1911/12 as the first of its kind worldwide. The site is now a protected monument and defines the silhouette of the Fischbach Valley."
+                    },
+                    img:"img/camphausen.jpg", copyright:"Foto: Flocci Nivis"
+                },
+                {
+                    id:"m5",name:"Grube Luisenthal",coords:[49.2477,6.8938],type:"Kohle",period:"1820-2005",
+                    desc:{
+                        de:"Einst das tiefste Bergwerk an der Saar. Traurige Berühmtheit erlangte Luisenthal durch das schwerste Grubenunglück in der Geschichte der Bundesrepublik: Am 7. Februar 1962 kamen bei einer Schlagwetterexplosion 299 Bergleute ums Leben. Eine Gedenkstätte erinnert heute an die Opfer. In späteren Jahren wurde Luisenthal mit dem Bergwerk Warndt zum Verbundbergwerk zusammengelegt.",
+                        fr:"Autrefois la mine la plus profonde de la Sarre. Luisenthal a acquis une triste notoriété à cause de la plus grave catastrophe minière de l'histoire de la République fédérale : le 7 février 1962, 299 mineurs ont péri dans une explosion de grisou. Un mémorial rappelle aujourd'hui les victimes. Plus tard, Luisenthal a été fusionnée avec la mine Warndt.",
+                        en:"Once the deepest mine on the Saar. Luisenthal gained sad notoriety due to the worst mining accident in the history of the Federal Republic: on February 7, 1962, 299 miners died in a firedamp explosion. A memorial commemorates the victims today. In later years, Luisenthal was merged with the Warndt mine."
+                    },
+                    img:"img/luisenthal.jpg", copyright:"Foto: LoKiLeCh"
+                },
+                {
+                    id:"m6",name:"Grube Warndt",coords:[49.1864,6.8097],type:"Kohle",period:"1963-2005",
+                    desc:{
+                        de:"Das jüngste Großbergwerk des Reviers, 1963 in Betrieb genommen, um die reichen Vorkommen unter dem Warndtwald zu erschließen. Es war hochmechanisiert und später über einen 7 km langen Förderstollen mit der Grube Luisenthal verbunden. Nach der Stilllegung wurden die Schächte verfüllt; die Tagesanlagen wurden weitgehend zurückgebaut.",
+                        fr:"La plus jeune grande mine de la région, mise en service en 1963 pour exploiter les riches gisements sous la forêt du Warndt. Elle était hautement mécanisée et plus tard reliée à la mine Luisenthal par une galerie de 7 km. Après la fermeture, les puits ont été comblés ; les installations de surface ont été largement démantelées.",
+                        en:"The youngest major mine in the district, commissioned in 1963 to access rich deposits under the Warndt forest. It was highly mechanized and later connected to the Luisenthal mine via a 7 km long tunnel. After shutdown, the shafts were backfilled; the surface facilities were largely dismantled."
+                    },
+                    img:"img/warndt.jpg", copyright:"Foto: Ducky88"
+                },
+                {
+                    id:"m7",name:"Grube Velsen",coords:[49.2219,6.8363],type:"Kohle",period:"1899-2005",
+                    desc:{
+                        de:"Velsen ist heute ein beliebtes Erlebnisbergwerk. Besucher können hier unter Führung ehemaliger Bergleute Technik zum Anfassen erleben. Legendär ist die 'Kaffeeküche', ein riesiger Saal für die Pausen der Belegschaft. Der Gustav-Schacht II besitzt eines der seltenen Doppelbock-Fördergerüste.",
+                        fr:"Velsen est aujourd'hui une mine d'aventure populaire. Les visiteurs peuvent y découvrir la technologie de près, guidés par d'anciens mineurs. La 'cuisine à café', une immense salle pour les pauses du personnel, est légendaire. Le puits Gustav II possède l'un des rares chevalements à double béquille.",
+                        en:"Velsen is now a popular adventure mine. Visitors can experience hands-on technology guided by former miners. The 'coffee kitchen', a huge hall for staff breaks, is legendary. The Gustav Shaft II has one of the rare double-trestle headframes."
+                    },
+                    img:"img/velsen.jpg", copyright:"Foto: Unbekannt"
+                },
+                {
+                    id:"m8",name:"Grube Itzenplitz",coords:[49.3542,7.0869],type:"Kohle",period:"1856-1960",
+                    desc:{
+                        de:"Malerisch am Itzenplitzer Weiher gelegen. Die Grube besitzt das älteste erhaltene Fördergerüst des Saarlandes (Schacht II), eine filigrane Stahlkonstruktion. Der Weiher wurde ursprünglich zur Wasserversorgung der Dampfmaschinen angelegt und ist heute ein Naherholungsgebiet.",
+                        fr:"Pittoresquement située près de l'étang d'Itzenplitz. La mine possède le plus ancien chevalement conservé de la Sarre (puits II), une construction en acier filigrane. L'étang a été créé à l'origine pour alimenter les machines à vapeur en eau et est aujourd'hui une zone de loisirs.",
+                        en:"Picturesquely located by the Itzenplitz Pond. The mine has the oldest preserved headframe in Saarland (Shaft II), a filigree steel structure. The pond was originally created to supply water for steam engines and is now a recreation area."
+                    },
+                    img:"img/itzeblitz.jpg", copyright:"Foto: Elmar Ersch"
+                },
+                {
+                    id:"m9",name:"Grube Dechen",coords:[49.3378,7.1722],type:"Kohle",period:"1854-1968",
+                    desc:{
+                        de:"Die Grube Dechen war strategisch wichtig für die direkte Versorgung des benachbarten Neunkircher Eisenwerks mit Koks. Sie wurde nach dem preußischen Oberberghauptmann Heinrich von Dechen benannt. Viele ihrer Stollen reichten bis unter das Stadtgebiet von Neunkirchen.",
+                        fr:"La mine Dechen était stratégiquement importante pour l'approvisionnement direct en coke de l'usine sidérurgique voisine de Neunkirchen. Elle a été nommée d'après le capitaine des mines prussien Heinrich von Dechen. Beaucoup de ses galeries s'étendaient sous la ville de Neunkirchen.",
+                        en:"The Dechen mine was strategically important for directly supplying coke to the neighboring Neunkirchen ironworks. It was named after Prussian chief mining captain Heinrich von Dechen. Many of its tunnels extended beneath the city of Neunkirchen."
+                    },
+                    img:"img/dechen.jpg", copyright:"Foto: Zecke64"
+                },
+                {
+                    id:"m10",name:"Grube Heinitz",coords:[49.3300,7.1300],type:"Kohle",period:"1847-1964",
+                    desc:{
+                        de:"Heinitz war eine der bedeutendsten Staatsgruben Preußens an der Saar. Benannt nach Minister Friedrich Anton von Heinitz. Die Grube war technologisch oft Vorreiter und besaß umfangreiche Kokereianlagen. Nach der Schließung 1964 wurden viele Flächen renaturiert.",
+                        fr:"Heinitz était l'une des plus importantes mines d'État prussiennes de la Sarre. Nommée d'après le ministre Friedrich Anton von Heinitz. La mine était souvent pionnière technologique et possédait de vastes cokeries. Après la fermeture en 1964, de nombreuses zones ont été renaturées.",
+                        en:"Heinitz was one of Prussia's most important state mines on the Saar. Named after Minister Friedrich Anton von Heinitz. The mine was often a technological pioneer and possessed extensive coking plants. After closing in 1964, many areas were renatured."
+                    },
+                    img:"img/heinitz.jpg", copyright:"Foto: Gripweed"
+                },
+                {
+                    id:"m11",name:"Grube König",coords:[49.3450,7.1750],type:"Kohle",period:"1820-1968",
+                    desc:{
+                        de:"Mitten im Herzen von Neunkirchen gelegen, war diese Grube untrennbar mit der Stadtgeschichte verbunden. Sie lieferte nicht nur Kohle für die Hütte, sondern prägte auch die soziale Struktur durch ihre Arbeitersiedlungen. Der König-Schacht war lange Zeit eines der Wahrzeichen der Stadt.",
+                        fr:"Située au cœur de Neunkirchen, cette mine était indissociable de l'histoire de la ville. Elle fournissait non seulement du charbon pour l'usine, mais façonnait aussi la structure sociale grâce à ses cités ouvrières. Le puits König a longtemps été l'un des emblèmes de la ville.",
+                        en:"Located right in the heart of Neunkirchen, this mine was inextricably linked to the city's history. It not only supplied coal for the ironworks but also shaped the social structure through its workers' settlements. The König shaft was a city landmark for a long time."
+                    },
+                    img:"img/koenig.jpg", copyright:"Foto: Carl Heinrich Jacobi"
+                },
+                {
+                    id:"m12",name:"Grube Frankenholz",coords:[49.3702,7.2405],type:"Kohle",period:"1879-1959",
+                    desc:{
+                        de:"Frankenholz war zeitweise die tiefste Grube der bayerischen Pfalz (zu der das Gebiet damals gehörte). Sie war bekannt für schwierige geologische Bedingungen und Schlagwettergefahren. Ihr markanter Beton-Förderturm wurde in den 1930ern errichtet und ist heute ein Denkmal.",
+                        fr:"Frankenholz fut par moments la mine la plus profonde du Palatinat bavarois (auquel la zone appartenait alors). Elle était connue pour ses conditions géologiques difficiles et ses risques de grisou. Sa tour d'extraction en béton marquante a été construite dans les années 1930 et est aujourd'hui un monument.",
+                        en:"Frankenholz was at times the deepest mine in the Bavarian Palatinate (to which the area belonged then). It was known for difficult geological conditions and firedamp hazards. Its distinctive concrete winding tower was built in the 1930s and is a monument today."
+                    },
+                    img:"img/frankenholz.jpg", copyright:"Foto: Unbekannt"
+                },
+                {
+                    id:"m13",name:"Grube St. Ingbert",coords:[49.2830,7.1180],type:"Kohle",period:"1852-1959",
+                    desc:{
+                        de:"Die Steinkohlegewinnung in St. Ingbert reicht bis ins 15. Jahrhundert zurück. Das Herzstück heute ist das Besucherbergwerk 'Rischbachstollen', wo man die harte Arbeit der Bergleute authentisch nacherleben kann. Die Grube war entscheidend für die Industrialisierung der Stadt.",
+                        fr:"L'extraction de houille à St. Ingbert remonte au 15ème siècle. Le cœur du site est aujourd'hui la mine touristique 'Rischbachstollen', où l'on peut revivre authentiquement le dur labeur des mineurs. La mine a été décisive pour l'industrialisation de la ville.",
+                        en:"Coal mining in St. Ingbert dates back to the 15th century. The centerpiece today is the 'Rischbach Tunnel' visitor mine, where one can authentically experience the miners' hard work. The mine was crucial for the city's industrialization."
+                    },
+                    img:"img/ingbert.jpg", copyright:"Foto: Christian Bohr"
+                },
+                {
+                    id:"m14",name:"Grube Maybach",coords:[49.3205,7.0632],type:"Kohle",period:"1873-1964",
+                    desc:{
+                        de:"Benannt nach Albert von Maybach. Die Grube im Ortsteil Friedrichsthal war Schauplatz eines schweren Unglücks im Jahr 1930. Bekannt ist sie auch für den 'Marie-Juchacz-Schacht'. Die Siedlung Maybach wurde als eigenständige Werkssiedlung im Wald angelegt und steht heute unter Ensembleschutz.",
+                        fr:"Nommée d'après Albert von Maybach. La mine dans le quartier de Friedrichsthal a été le théâtre d'un grave accident en 1930. Elle est aussi connue pour le puits 'Marie-Juchacz'. La cité Maybach a été aménagée comme une cité ouvrière autonome dans la forêt et est aujourd'hui classée ensemble protégé.",
+                        en:"Named after Albert von Maybach. The mine in the Friedrichsthal district was the site of a severe accident in 1930. It is also known for the 'Marie Juchacz Shaft'. The Maybach settlement was built as an independent company town in the forest and is now a protected ensemble."
+                    },
+                    img:"img/maybach.jpg", copyright:"Foto: Unbekannt"
+                },
+                {
+                    id:"m15",name:"Grube Viktoria",coords:[49.2927,6.8882],type:"Kohle",period:"1866-1963",
+                    desc:{
+                        de:"Gelegen in Püttlingen, oft als 'Köllertal-Metropole' bezeichnet. Die Grube Viktoria war prägend für die Region. Ein architektonisches Highlight ist das Zechenhaus, das wegen seiner sakralen Anmutung auch 'Kathedrale der Arbeit' genannt wird und heute für kulturelle Zwecke genutzt wird.",
+                        fr:"Située à Püttlingen, souvent appelée 'Métropole de la vallée de Köller'. La mine Viktoria a marqué la région. Un point fort architectural est le bâtiment de la mine, appelé 'Cathédrale du Travail' en raison de son allure sacrée, aujourd'hui utilisé à des fins culturelles.",
+                        en:"Located in Püttlingen, often called the 'Köllertal Metropolis'. The Viktoria mine shaped the region. An architectural highlight is the mine building, called the 'Cathedral of Work' due to its sacral appearance, now used for cultural purposes."
+                    },
+                    img:"img/viktoria.jpg", copyright:"Foto: Kallewirsch"
+                },
+                {
+                    id:"m16",name:"Grube Von der Heydt",coords:[49.2688,6.9575],type:"Kohle",period:"1850-1965",
+                    desc:{
+                        de:"Benannt nach dem legendären Bankier und preußischen Handelsminister August von der Heydt. Die Grube liegt idyllisch mitten im Saarbrücker Stadtwald (Burbacher Wald). Besonders bemerkenswert ist die zugehörige Arbeitersiedlung, die fast unverändert erhalten ist und als Gartenstadt-Modell gilt.",
+                        fr:"Nommée d'après le légendaire banquier et ministre du commerce prussien August von der Heydt. La mine est idéalement située au milieu de la forêt urbaine de Sarrebruck. La cité ouvrière associée est particulièrement remarquable, conservée presque intacte et considérée comme un modèle de cité-jardin.",
+                        en:"Named after the legendary banker and Prussian Trade Minister August von der Heydt. The mine is beautifully located in the middle of the Saarbrücken city forest. Particularly noteworthy is the associated workers' settlement, preserved almost unchanged and considered a garden city model."
+                    },
+                    img:"img/heydt.jpg", copyright:"Foto: Unbekannt"
+                },
+                {
+                    id:"m17",name:"Grube Jägersfreude",coords:[49.2610,7.0050],type:"Kohle",period:"1856-1968",
+                    desc:{
+                        de:"Im Volksmund 'Blechhammer' genannt. Jägersfreude liegt im Sulzbachtal und war direkt an die Eisenbahnlinie angeschlossen. Nach der Stilllegung blieben Teile der Tagesanlagen erhalten und wurden gewerblich genutzt. Die Halde der Grube ist heute ein beliebter Aussichtspunkt.",
+                        fr:"Surnommée 'Blechhammer'. Jägersfreude est située dans la vallée de Sulzbach et était directement reliée à la ligne de chemin de fer. Après la fermeture, des parties des installations de surface ont été conservées et utilisées commercialement. Le terril de la mine est aujourd'hui un point de vue populaire.",
+                        en:"Nickname 'Blechhammer'. Jägersfreude is located in the Sulzbach Valley and was directly connected to the railway line. After closing, parts of the surface facilities were preserved and used commercially. The mine dump is now a popular viewpoint."
+                    },
+                    img:"img/jaegersfreude.jpg", copyright:"Foto: Flocci Nivis"
+                },
+                {
+                    id:"m18",name:"Grube Kohlwald",coords:[49.3680,7.1980],type:"Kohle",period:"1842-1966",
+                    desc:{
+                        de:"Die Grube Kohlwald bei Wiebelskirchen lag in einem Waldgebiet an der Grenze zu Bayern (Pfalz). Sie baute zeitweise auch Flöze ab, die eigentlich auf bayerischem Gebiet lagen (durch einen Staatsvertrag geregelt). Bekannt für ihre schwierige Wasserhaltung.",
+                        fr:"La mine Kohlwald près de Wiebelskirchen était située dans une zone forestière à la frontière avec la Bavière (Palatinat). Elle exploitait parfois des veines situées en territoire bavarois (régi par un traité d'État). Connue pour sa gestion difficile de l'eau.",
+                        en:"The Kohlwald mine near Wiebelskirchen was located in a forest area on the border with Bavaria (Palatinate). It occasionally mined seams actually located in Bavarian territory (regulated by a state treaty). Known for its difficult water management."
+                    },
+                    img:"img/kohlwald.jpg", copyright:"Foto: Georg Diancourt"
+                },
+                {
+                    id:"m19",name:"Grube Hirschbach",coords:[49.2850,7.0450],type:"Kohle",period:"1816-1950",
+                    desc:{
+                        de:"Eine der ältesten Gruben im Raum Dudweiler. Sie war bekannt für den Einsatz der ersten Dampfmaschinen im Revier. Nach ihrer Stilllegung dienten Teile der Stollen als Lehrbergwerk und später zur Bewetterung der Grube Jägersfreude.",
+                        fr:"Une des plus anciennes mines de la région de Dudweiler. Elle était connue pour l'utilisation des premières machines à vapeur de la région. Après sa fermeture, des parties des galeries ont servi de mine école et plus tard à l'aération de la mine Jägersfreude.",
+                        en:"One of the oldest mines in the Dudweiler area. It was known for using the first steam engines in the district. After its closure, parts of the tunnels served as a training mine and later for ventilating the Jägersfreude mine."
+                    },
+                    img:"img/hirschbach.jpg", copyright:"Foto: Zecke64"
+                },
+                {
+                    id:"m26",name:"Grube Altenwald",coords:[49.3100,7.0800],type:"Kohle",period:"1851-1932",
+                    desc:{
+                        de:"Gelegen im gleichnamigen Stadtteil von Sulzbach. Obwohl die Förderung bereits 1932 endete, prägte sie den Ort nachhaltig. Die Grube litt stark unter der Weltwirtschaftskrise, was zu ihrer frühen Schließung führte.",
+                        fr:"Située dans le quartier du même nom à Sulzbach. Bien que l'extraction ait cessé dès 1932, elle a durablement marqué le lieu. La mine a beaucoup souffert de la crise économique mondiale, ce qui a conduit à sa fermeture précoce.",
+                        en:"Located in the district of the same name in Sulzbach. Although mining ended as early as 1932, it left a lasting mark on the town. The mine suffered greatly during the Great Depression, leading to its early closure."
+                    },
+                    img:"img/altenwald.jpg", copyright:"Foto: Unbekannt"
+                },
+                {
+                    id:"m29",name:"Grube Reisbach",coords:[49.3800,6.9000],type:"Kohle",period:"1962-2000",
+                    desc:{
+                        de:"Eine Besonderheit im Saarbergbau: Es war keine Staatsgrube, sondern eine Privatgrube im Besitz der Unternehmerfamilie Dr. Arnold Schäfer. Sie förderte bis ins Jahr 2000 und war damit eine der langlebigsten Privatgruben Deutschlands.",
+                        fr:"Une particularité dans les mines sarroises : ce n'était pas une mine d'État, mais une mine privée appartenant à la famille d'entrepreneurs Dr. Arnold Schäfer. Elle a produit jusqu'en 2000, ce qui en fait l'une des mines privées les plus durables d'Allemagne.",
+                        en:"A curiosity in Saar mining: it was not a state mine, but a private mine owned by the entrepreneur family Dr. Arnold Schäfer. It mined until 2000, making it one of Germany's longest-lasting private mines."
+                    },
+                    img:"img/reisbach.jpg", copyright:"Foto: Flocci Nivis"
+                },
+                {
+                    id:"m30",name:"Grube Hostenbach",coords:[49.2600,6.7800],type:"Kohle",period:"1750-1932",
+                    desc:{
+                        de:"Hostenbach war eine der ältesten Gruben des Landes, bereits im 18. Jahrhundert erwähnt. Sie lag in der Gemeinde Wadgassen. Interessant ist ihre Verbindung zur lokalen Glas- und Eisenindustrie, die sie mit Brennstoff versorgte.",
+                        fr:"Hostenbach était l'une des plus anciennes mines du pays, mentionnée dès le 18ème siècle. Elle était située dans la commune de Wadgassen. Sa connexion avec l'industrie locale du verre et du fer, qu'elle alimentait en carburant, est intéressante.",
+                        en:"Hostenbach was one of the oldest mines in the state, mentioned as early as the 18th century. It was located in the municipality of Wadgassen. Interesting is its connection to the local glass and iron industry, which it supplied with fuel."
+                    },
+                    img:"img/hostenbach.jpg", copyright:"Foto: Zecke64"
+                },
+                {
+                    id:"m31",name:"Grube Mellin",coords:[49.3050,7.0650],type:"Kohle",period:"1856-1932",
+                    desc:{
+                        de:"Diese Sulzbacher Grube ist berühmt für ihr neugotisches Bauensemble, insbesondere den Förderturm, der an einen Burgfried erinnert. Die 'Mellin-Velsen'-Schachtanlage gilt als eines der schönsten Beispiele für die Industriearchitektur des 19. Jahrhunderts.",
+                        fr:"Cette mine de Sulzbach est célèbre pour son ensemble architectural néo-gothique, notamment la tour d'extraction qui rappelle un donjon. Le complexe 'Mellin-Velsen' est considéré comme l'un des plus beaux exemples d'architecture industrielle du 19ème siècle.",
+                        en:"This Sulzbach mine is famous for its neo-Gothic building ensemble, especially the winding tower which resembles a castle keep. The 'Mellin-Velsen' complex is considered one of the finest examples of 19th-century industrial architecture."
+                    },
+                    img:"img/mellin.jpg", copyright:"Foto: Flocci Nivis"
+                }
             ],
             steel:[
-                {id:"s1",name:"Völklinger Hütte",coords:[49.2485,6.8442],type:"Stahl",period:"UNESCO",desc:{de:"Weltkulturerbe seit 1994.", fr:"Patrimoine mondial depuis 1994.", en:"World Heritage Site since 1994."}, img:"img/voelklingen.jpg", copyright:"Foto: TeKaBe"},
-                {id:"s2",name:"Dillinger Hütte",coords:[49.3480,6.7450],type:"Stahl",period:"Aktiv",desc:{de:"Grobblech-Spezialist, gegr. 1685.", fr:"Spécialiste de la tôle forte, fondé en 1685.", en:"Heavy plate specialist, est. 1685."}, img:"img/dillingen.jpg", copyright:"Foto: Borchel"},
-                {id:"s3",name:"Neunkircher Eisenwerk",coords:[49.3455,7.1780],type:"Stahl",period:"1593-1982",desc:{de:"Dominierte das Stadtbild Neunkirchens.", fr:"Dominait le paysage urbain de Neunkirchen.", en:"Dominated the cityscape of Neunkirchen."}, img:"img/neunkirchen.jpg", copyright:"Foto: Pierre Lemoine"},
-                {id:"s4",name:"Halberger Hütte",coords:[49.2180,7.0300],type:"Stahl",period:"Aktiv",desc:{de:"Brebach. Gussrohre und Motorteile.", fr:"Brebach. Tuyaux en fonte et pièces de moteur.", en:"Brebach. Cast iron pipes and engine parts."}, img:"img/halberg.jpg", copyright:"Foto: AnRo0002"},
-                {id:"s5",name:"Burbacher Hütte",coords:[49.2420,6.9350],type:"Stahl",period:"Aktiv",desc:{de:"Saarbrücken-Burbach. Drahtstraße.", fr:"Sarrebruck-Burbach. Train à fil.", en:"Saarbrücken-Burbach. Wire rod mill."}, img:"img/burbach.jpg", copyright:"Foto: NobbiP"},
-                {id:"s6",name:"Alte Schmelz",coords:[49.2750,7.1050],type:"Eisen",period:"1733-1991",desc:{de:"Industriedenkmal St. Ingbert.", fr:"Monument industriel St. Ingbert.", en:"Industrial monument St. Ingbert."}, img:"img/schmelz.jpg", copyright:"Foto: Conny Liegl"},
-                {id:"s7",name:"Eisenwerk Homburg",coords:[49.3250,7.3350],type:"Eisen",period:"19. Jh.",desc:{de:"Wichtiger Standort für die pfälzisch-saarländische Eisenindustrie.", fr:"Site important pour l'industrie du fer.", en:"Important site for the Palatinate-Saar iron industry."}, img:"img/homburg.jpg", copyright:"Foto: Bezirksamt rentamt"},
-                {id:"s8",name:"Mariahütte",coords:[49.6050,6.9650],type:"Eisen",period:"ab 17. Jh.",desc:{de:"Eine der ältesten Hütten im Hochwald.", fr:"Une des plus anciennes usines du Hochwald.", en:"One of the oldest ironworks in the Hochwald."}, img:"img/mariahuette.jpg", copyright:"Foto: Leiflive"},
-                {id:"s9",name:"Hubertushütte",coords:[49.5800,6.9500],type:"Eisen",period:"1748-1868",desc:{de:"Bierfeld (Nonnweiler). Historische Hütte.", fr:"Bierfeld. Usine historique.", en:"Bierfeld. Historic ironworks."}, img:"", copyright:""},
-                {id:"s10",name:"Geislauterner Eisenwerk",coords:[49.2350,6.8300],type:"Eisen",period:"1585-1875",desc:{de:"Wiege der saarländischen Eisenindustrie.", fr:"Berceau de l'industrie du fer sarroise.", en:"Cradle of the Saarland iron industry."}, img:"img/geislautern.jpg", copyright:"Foto: Zecke64"},
-                {id:"s11",name:"Eisenwerk Bettingen",coords:[49.4350,6.8600],type:"Eisen",period:"1686-1868",desc:{de:"Namensgeber für den Ort 'Schmelz'.", fr:"Donne son nom à la localité 'Schmelz'.", en:"Namesake for the town 'Schmelz'."}, img:"img/schmelz.jpg", copyright:"Foto: Conny Liegl"},
-                {id:"s12",name:"Aschbacher Eisenwerk",coords:[49.2300,6.9100],type:"Eisen",period:"1724-1860",desc:{de:"Gersweiler. Typische Hütte der Barockzeit.", fr:"Gersweiler. Usine typique de l'époque baroque.", en:"Gersweiler. Typical baroque era ironworks."}, img:"", copyright:""},
-                {id:"s13",name:"Fischbacher Schmelze",coords:[49.3150,7.0400],type:"Eisen",period:"1728-1860",desc:{de:"Frühindustrielle Anlage im Fischbachtal.", fr:"Installation pré-industrielle.", en:"Early industrial site in Fischbach Valley."}, img:"", copyright:""},
-                {id:"s14",name:"Goffontaine",coords:[49.2250,7.0500],type:"Eisen",period:"18. Jh.",desc:{de:"Schafbrücke. Bekannt für den Drahtzug.", fr:"Schafbrücke. Connue pour la tréfilerie.", en:"Schafbrücke. Known for wire drawing."}, img:"", copyright:""},
-                {id:"s15",name:"Wadgasser Hütte",coords:[49.2700,6.7900],type:"Eisen/Glas",period:"17.-19. Jh.",desc:{de:"Ursprünglich Eisenverarbeitung, später Kristallglas.", fr:"À l'origine fer, plus tard cristal.", en:"Originally iron processing, later crystal glass."}, img:"", copyright:""},
-                {id:"s16",name:"Karlsbrunner Hütte",coords:[49.1850,6.8300],type:"Eisen",period:"18. Jh.",desc:{de:"Im Warndt gelegen.", fr:"Située dans le Warndt.", en:"Located in the Warndt."}, img:"", copyright:""},
-                {id:"s18",name:"Hütte Wecklingen",coords:[49.2300,7.2500],type:"Eisen",period:"18. Jh.",desc:{de:"Kleine historische Anlage im Bliestal.", fr:"Petite installation historique.", en:"Small historic site in the Blies Valley."}, img:"", copyright:""},
-                {id:"s19",name:"St. Ingberter Eisenwerk",coords:[49.2800,7.1200],type:"Eisen",period:"19. Jh.",desc:{de:"Wichtiger Standort für Draht- und Nagelproduktion.", fr:"Site important pour le fil et les clous.", en:"Important site for wire and nail production."}, img:"", copyright:""},
-                {id:"s20",name:"Röhrenwerke Bous",coords:[49.2750,6.8050],type:"Stahl",period:"Aktiv",desc:{de:"Mannesmann Röhrenwerke.", fr:"Mannesmann Röhrenwerke.", en:"Mannesmann Pipe Works."}, img:"", copyright:""},
-                {id:"s21",name:"Hüttigweiler",coords:[49.3880,7.0800],type:"Eisen",period:"Mittelalter",desc:{de:"Historischer Standort in Illingen.", fr:"Site historique à Illingen.", en:"Historic site in Illingen."}, img:"", copyright:""}
+                {
+                    id:"s1",name:"Völklinger Hütte",coords:[49.2485,6.8442],type:"Stahl",period:"UNESCO",
+                    desc:{
+                        de:"Die Völklinger Hütte ist das weltweit einzige vollständig erhaltene Eisenwerk aus der Blütezeit der Industrialisierung und seit 1994 UNESCO-Weltkulturerbe. Zu besichtigen sind die riesigen Hochöfen, die Gebläsehalle mit ihren gigantischen Schwungrädern und die Sinteranlage. Heute ist sie ein internationaler Ort für Ausstellungen und Konzerte.",
+                        fr:"L'usine sidérurgique de Völklingen est la seule usine sidérurgique entièrement conservée au monde datant de l'âge d'or de l'industrialisation et est classée au patrimoine mondial de l'UNESCO depuis 1994. On peut y visiter les immenses hauts fourneaux, la salle des soufflantes et l'usine d'agglomération. C'est aujourd'hui un lieu international d'expositions et de concerts.",
+                        en:"The Völklingen Ironworks is the world's only fully preserved ironworks from the peak of industrialization and has been a UNESCO World Heritage Site since 1994. Visitors can view the huge blast furnaces, the blower hall with its gigantic flywheels, and the sintering plant. Today it is an international venue for exhibitions and concerts."
+                    },
+                    img:"img/voelklingen.jpg", copyright:"Foto: TeKaBe"
+                },
+                {
+                    id:"s2",name:"Dillinger Hütte",coords:[49.3480,6.7450],type:"Stahl",period:"Aktiv",
+                    desc:{
+                        de:"Gegründet 1685, ist die Dillinger Hütte das älteste noch produzierende Stahlunternehmen im Saarland. Sie ist ein Weltmarktführer für hochwertige Grobbleche, die u.a. für Pipelines, Brücken und Windkraftanlagen (Offshore) verwendet werden. Die Hochöfen prägen das Stadtbild von Dillingen.",
+                        fr:"Fondée en 1685, la Dillinger Hütte est la plus ancienne entreprise sidérurgique encore en activité en Sarre. Elle est un leader mondial des tôles fortes de haute qualité, utilisées pour les pipelines, les ponts et les éoliennes (offshore). Les hauts fourneaux marquent le paysage urbain de Dillingen.",
+                        en:"Founded in 1685, Dillinger Hütte is the oldest still-producing steel company in Saarland. It is a global market leader for high-quality heavy plates used for pipelines, bridges, and wind turbines (offshore). The blast furnaces dominate the cityscape of Dillingen."
+                    },
+                    img:"img/dillingen.jpg", copyright:"Foto: Borchel"
+                },
+                {
+                    id:"s3",name:"Neunkircher Eisenwerk",coords:[49.3455,7.1780],type:"Stahl",period:"1593-1982",
+                    desc:{
+                        de:"Das Werk dominierte jahrhundertelang die 'Stadt aus Eisen und Kohle'. Es lag mitten im Stadtzentrum. Nach der Stilllegung 1982 wurden die meisten Anlagen abgerissen, doch Relikte wie die Hochofengruppe und der riesige Gasometer blieben als Industriedenkmäler erhalten und wurden in das 'Alte Hüttenareal' integriert.",
+                        fr:"L'usine a dominé pendant des siècles la 'ville de fer et de charbon'. Elle était située en plein centre-ville. Après la fermeture en 1982, la plupart des installations ont été démolies, mais des reliques comme le groupe de hauts fourneaux et l'immense gazomètre ont été conservées et intégrées dans l''Ancienne zone sidérurgique'.",
+                        en:"The works dominated the 'City of Iron and Coal' for centuries. It was located right in the city center. After closing in 1982, most facilities were demolished, but relics like the blast furnace group and the huge gasometer were preserved as industrial monuments and integrated into the 'Old Ironworks Area'."
+                    },
+                    img:"img/neunkirchen.jpg", copyright:"Foto: Pierre Lemoine"
+                },
+                {
+                    id:"s4",name:"Halberger Hütte",coords:[49.2180,7.0300],type:"Stahl",period:"Aktiv",
+                    desc:{
+                        de:"Gelegen am Fuße des Halbergs in Brebach. Die Hütte blickt auf eine lange Tradition seit 1756 zurück. Heute gehört sie zur Saint-Gobain-Gruppe und ist spezialisiert auf duktile Gussrohre für die Wasserversorgung sowie Motorenteile. Ein wichtiges Beispiel für die noch lebendige Industrie.",
+                        fr:"Située au pied du Halberg à Brebach. L'usine a une longue tradition remontant à 1756. Aujourd'hui, elle appartient au groupe Saint-Gobain et est spécialisée dans les tuyaux en fonte ductile pour l'approvisionnement en eau ainsi que les pièces de moteur. Un exemple important de l'industrie encore vivante.",
+                        en:"Located at the foot of the Halberg in Brebach. The works look back on a long tradition since 1756. Today it belongs to the Saint-Gobain group and specializes in ductile iron pipes for water supply and engine parts. An important example of still-active industry."
+                    },
+                    img:"img/halberg.jpg", copyright:"Foto: AnRo0002"
+                },
+                {
+                    id:"s5",name:"Burbacher Hütte",coords:[49.2420,6.9350],type:"Stahl",period:"Aktiv",
+                    desc:{
+                        de:"Die Burbacher Hütte in Saarbrücken entstand 1856. Sie ist heute ein Standort von Saarstahl und bekannt für ihre Drahtstraße. Das Werk prägte den Stadtteil Burbach massiv, der als klassisches Arbeiterviertel wuchs. Die Silhouette der Werkhallen ist von der Autobahn und der Saar aus gut sichtbar.",
+                        fr:"L'usine de Burbach à Sarrebruck a été créée en 1856. C'est aujourd'hui un site de Saarstahl, connu pour son train à fil. L'usine a massivement façonné le quartier de Burbach, qui s'est développé comme un quartier ouvrier classique. La silhouette des halles est bien visible depuis l'autoroute et la Sarre.",
+                        en:"The Burbach Ironworks in Saarbrücken was established in 1856. It is now a Saarstahl site, known for its wire rod mill. The works massively shaped the Burbach district, which grew as a classic working-class neighborhood. The silhouette of the factory halls is clearly visible from the highway and the Saar river."
+                    },
+                    img:"img/burbach.jpg", copyright:"Foto: NobbiP"
+                },
+                {
+                    id:"s6",name:"Alte Schmelz",coords:[49.2750,7.1050],type:"Eisen",period:"1733-1991",
+                    desc:{
+                        de:"Ein bedeutendes Industriedenkmal in St. Ingbert. Hier wurde seit 1733 Eisen verhüttet. Das Ensemble aus Arbeiterhäusern ('Möllerhalle') und Verwaltungsgebäuden ist gut erhalten. Heute wird das Gelände oft für Kulturveranstaltungen genutzt und ist ein wichtiger Teil der saarländischen Industriegeschichte.",
+                        fr:"Un monument industriel important à St. Ingbert. Le fer y était fondu depuis 1733. L'ensemble des maisons ouvrières ('Möllerhalle') et des bâtiments administratifs est bien conservé. Aujourd'hui, le site est souvent utilisé pour des événements culturels et fait partie intégrante de l'histoire industrielle de la Sarre.",
+                        en:"An important industrial monument in St. Ingbert. Iron has been smelted here since 1733. The ensemble of workers' houses ('Möllerhalle') and administrative buildings is well preserved. Today the site is often used for cultural events and is an important part of Saarland's industrial history."
+                    },
+                    img:"img/schmelz.jpg", copyright:"Foto: Conny Liegl"
+                },
+                {
+                    id:"s7",name:"Eisenwerk Homburg",coords:[49.3250,7.3350],type:"Eisen",period:"19. Jh.",
+                    desc:{
+                        de:"Homburg spielte eine Schlüsselrolle in der pfälzisch-saarländischen Eisenindustrie. Das Werk profitierte von der frühen Bahnanbindung. Später entwickelte sich Homburg mehr zu einem Standort für verarbeitende Industrie und Automobilzulieferer (Bosch, Michelin), was die Wurzeln in der Metallverarbeitung widerspiegelt.",
+                        fr:"Homburg a joué un rôle clé dans l'industrie du fer palatino-sarroise. L'usine a profité de la connexion ferroviaire précoce. Plus tard, Homburg s'est davantage développée comme un site pour l'industrie manufacturière et les fournisseurs automobiles, reflétant ses racines dans le travail des métaux.",
+                        en:"Homburg played a key role in the Palatinate-Saar iron industry. The works benefited from the early railway connection. Later, Homburg developed more into a location for manufacturing industries and automotive suppliers, reflecting its roots in metalworking."
+                    },
+                    img:"img/homburg.jpg", copyright:"Foto: Bezirksamt rentamt"
+                },
+                {
+                    id:"s8",name:"Mariahütte",coords:[49.6050,6.9650],type:"Eisen",period:"ab 17. Jh.",
+                    desc:{
+                        de:"Gelegen im Hochwald (Nonnweiler-Otzenhausen). Die Mariahütte zählt zu den ältesten Hüttenwerken der Region. Sie nutzte ursprünglich die Wasserkraft der Prims und Holzkohle aus den umliegenden Wäldern. Heute ist das Werk Teil der Diehl Defence und produziert Hightech-Komponenten.",
+                        fr:"Située dans le Hochwald (Nonnweiler-Otzenhausen). La Mariahütte compte parmi les plus anciennes usines sidérurgiques de la région. Elle utilisait à l'origine l'énergie hydraulique de la Prims et le charbon de bois des forêts environnantes. Aujourd'hui, l'usine fait partie de Diehl Defence et produit des composants de haute technologie.",
+                        en:"Located in the Hochwald (Nonnweiler-Otzenhausen). The Mariahütte is one of the oldest ironworks in the region. It originally used the hydropower of the Prims river and charcoal from the surrounding forests. Today, the plant is part of Diehl Defence and produces high-tech components."
+                    },
+                    img:"img/mariahuette.jpg", copyright:"Foto: Leiflive"
+                },
+                {
+                    id:"s9",name:"Hubertushütte",coords:[49.5800,6.9500],type:"Eisen",period:"1748-1868",
+                    desc:{
+                        de:"Ein historisches Eisenwerk bei Bierfeld (Nonnweiler). Wie viele Hütten im Hochwald basierte sie auf der Verhüttung lokaler Erze mit Holzkohle. Mit dem Aufkommen der Kokshochöfen an der Saar (die billiger produzierten) verlor sie an Bedeutung und musste schließen.",
+                        fr:"Une usine de fer historique près de Bierfeld (Nonnweiler). Comme beaucoup d'usines du Hochwald, elle était basée sur la fusion de minerais locaux avec du charbon de bois. Avec l'avènement des hauts fourneaux au coke sur la Sarre (produisant moins cher), elle a perdu de son importance et a dû fermer.",
+                        en:"A historic ironworks near Bierfeld (Nonnweiler). Like many works in the Hochwald, it was based on smelting local ores with charcoal. With the advent of coke blast furnaces on the Saar (which produced more cheaply), it lost importance and had to close."
+                    },
+                    img:"", copyright:""
+                },
+                {
+                    id:"s10",name:"Geislauterner Eisenwerk",coords:[49.2350,6.8300],type:"Eisen",period:"1585-1875",
+                    desc:{
+                        de:"Geislautern gilt als eine der Wiegen der saarländischen Eisenindustrie. Bereits 1585 gegründet, war es ein technischer Vorreiter. Hier wurde sehr früh mit dem Einsatz von Dampfmaschinen experimentiert. Napoleon Bonaparte selbst soll Interesse an der strategisch wichtigen Produktion gezeigt haben.",
+                        fr:"Geislautern est considéré comme l'un des berceaux de l'industrie du fer sarroise. Fondée dès 1585, c'était un pionnier technique. On y a expérimenté très tôt l'utilisation de machines à vapeur. Napoléon Bonaparte lui-même aurait montré de l'intérêt pour la production stratégiquement importante.",
+                        en:"Geislautern is considered one of the cradles of the Saarland iron industry. Founded as early as 1585, it was a technical pioneer. Experiments with steam engines were conducted here very early on. Napoleon Bonaparte himself is said to have shown interest in the strategically important production."
+                    },
+                    img:"img/geislautern.jpg", copyright:"Foto: Zecke64"
+                },
+                {
+                    id:"s11",name:"Eisenwerk Bettingen",coords:[49.4350,6.8600],type:"Eisen",period:"1686-1868",
+                    desc:{
+                        de:"Die 'Bettinger Schmelz' war so bedeutend, dass sie dem heutigen Ort 'Schmelz' ihren Namen gab. Sie verarbeitete Lebacher Eier (Eisenerzknollen) und nutzte die Wasserkraft der Prims. Ein schönes Beispiel dafür, wie Industrie Ortsnamen prägte.",
+                        fr:"La 'Fonderie de Bettingen' était si importante qu'elle a donné son nom à la localité actuelle de 'Schmelz' (Fonderie). Elle traitait les 'œufs de Lebach' (nodules de minerai de fer) et utilisait l'énergie hydraulique de la Prims. Un bel exemple de la façon dont l'industrie a façonné les toponymes.",
+                        en:"The 'Bettingen Smelter' was so significant that it gave the current town 'Schmelz' (Smelter) its name. It processed 'Lebach eggs' (iron ore nodules) and used the hydropower of the Prims river. A fine example of how industry shaped place names."
+                    },
+                    img:"img/schmelz.jpg", copyright:"Foto: Conny Liegl"
+                },
+                {
+                    id:"s12",name:"Aschbacher Eisenwerk",coords:[49.2300,6.9100],type:"Eisen",period:"1724-1860",
+                    desc:{
+                        de:"Im heutigen Saarbrücker Stadtteil Gersweiler gelegen. Die Hütte ist ein typisches Beispiel für die Eisenindustrie der Barockzeit, gefördert durch die Grafen von Saarbrücken. Sie produzierte Töpfe, Öfen und Geländer.",
+                        fr:"Située dans l'actuel quartier Gersweiler de Sarrebruck. L'usine est un exemple typique de l'industrie du fer de l'époque baroque, promue par les comtes de Sarrebruck. Elle produisait des pots, des poêles et des balustrades.",
+                        en:"Located in the current Saarbrücken district of Gersweiler. The works are a typical example of the iron industry of the Baroque era, promoted by the Counts of Saarbrücken. It produced pots, stoves, and railings."
+                    },
+                    img:"", copyright:""
+                },
+                {
+                    id:"s13",name:"Fischbacher Schmelze",coords:[49.3150,7.0400],type:"Eisen",period:"1728-1860",
+                    desc:{
+                        de:"Eine frühindustrielle Anlage im waldreichen Fischbachtal. Sie nutzte die Kohle der nahen Gruben (wie Camphausen), war aber technologisch bald den großen Werken am Fluss (Völklingen, Burbach) unterlegen, was zu ihrer Schließung führte.",
+                        fr:"Une installation pré-industrielle dans la vallée boisée de Fischbach. Elle utilisait le charbon des mines proches (comme Camphausen), mais fut bientôt technologiquement inférieure aux grandes usines sur le fleuve (Völklingen, Burbach), ce qui conduisit à sa fermeture.",
+                        en:"An early industrial facility in the wooded Fischbach Valley. It used coal from nearby mines (like Camphausen) but was soon technologically inferior to the large works on the river (Völklingen, Burbach), leading to its closure."
+                    },
+                    img:"", copyright:""
+                },
+                {
+                    id:"s14",name:"Goffontaine",coords:[49.2250,7.0500],type:"Eisen",period:"18. Jh.",
+                    desc:{
+                        de:"In Schafbrücke gelegen. Bekannt für ihren Drahtzug und die Herstellung von Nägeln. Der Name geht auf den Gründer zurück. Ein Relikt aus der Zeit, als kleine Hämmer und Schmelzen entlang der Bäche im Saarbrücker Raum entstanden.",
+                        fr:"Située à Schafbrücke. Connue pour sa tréfilerie et la fabrication de clous. Le nom remonte au fondateur. Un vestige de l'époque où de petits martinets et fonderies émergeaient le long des ruisseaux dans la région de Sarrebruck.",
+                        en:"Located in Schafbrücke. Known for its wire drawing and nail manufacturing. The name goes back to the founder. A relic from the time when small hammers and smelters emerged along the streams in the Saarbrücken area."
+                    },
+                    img:"", copyright:""
+                },
+                {
+                    id:"s15",name:"Wadgasser Hütte",coords:[49.2700,6.7900],type:"Eisen/Glas",period:"17.-19. Jh.",
+                    desc:{
+                        de:"Wadgassen hat eine doppelte Industriegeschichte. Ursprünglich gab es hier Eisenverarbeitung, die später von der berühmten Kristallglasfabrik (Villeroy & Boch) abgelöst wurde. Der Standort profitierte von der Nähe zur Saar für den Transport.",
+                        fr:"Wadgassen a une double histoire industrielle. À l'origine, il y avait le traitement du fer, qui a été remplacé plus tard par la célèbre cristallerie (Villeroy & Boch). Le site a profité de la proximité de la Sarre pour le transport.",
+                        en:"Wadgassen has a dual industrial history. Originally there was iron processing here, which was later replaced by the famous crystal glass factory (Villeroy & Boch). The location benefited from its proximity to the Saar river for transport."
+                    },
+                    img:"", copyright:""
+                },
+                {
+                    id:"s16",name:"Karlsbrunner Hütte",coords:[49.1850,6.8300],type:"Eisen",period:"18. Jh.",
+                    desc:{
+                        de:"Tief im Warndt gelegen, war diese Hütte eng mit dem Jagdschloss Karlsbrunn verbunden. Sie nutzte die Ressourcen des Warndtwaldes. Heute erinnert vor allem der Ortsname und die Siedlungsstruktur an die industrielle Vergangenheit.",
+                        fr:"Située au fond du Warndt, cette usine était étroitement liée au pavillon de chasse de Karlsbrunn. Elle utilisait les ressources de la forêt du Warndt. Aujourd'hui, c'est surtout le nom du lieu et la structure de l'habitat qui rappellent le passé industriel.",
+                        en:"Located deep in the Warndt, this ironworks was closely linked to the Karlsbrunn hunting lodge. It utilized the resources of the Warndt forest. Today, mainly the place name and settlement structure remind of the industrial past."
+                    },
+                    img:"", copyright:""
+                },
+                {
+                    id:"s18",name:"Hütte Wecklingen",coords:[49.2300,7.2500],type:"Eisen",period:"18. Jh.",
+                    desc:{
+                        de:"Eine kleinere historische Anlage im Bliestal bei Blieskastel. Sie zeigt, dass die Eisenverarbeitung im 18. Jahrhundert nicht nur auf das Kohlerevier beschränkt war, sondern auch in den ländlichen Randgebieten stattfand.",
+                        fr:"Une petite installation historique dans la vallée de la Blies près de Blieskastel. Elle montre que le traitement du fer au 18ème siècle n'était pas limité au bassin houiller, mais avait aussi lieu dans les zones rurales périphériques.",
+                        en:"A smaller historic facility in the Blies Valley near Blieskastel. It shows that iron processing in the 18th century was not limited to the coal district but also took place in rural peripheral areas."
+                    },
+                    img:"", copyright:""
+                },
+                {
+                    id:"s19",name:"St. Ingberter Eisenwerk",coords:[49.2800,7.1200],type:"Eisen",period:"19. Jh.",
+                    desc:{
+                        de:"Neben der 'Alten Schmelz' gab es in St. Ingbert weitere bedeutende Eisenwerke, die sich auf die Draht- und Nagelproduktion spezialisierten. Die Stadt war lange Zeit das Zentrum der saarländischen Drahtindustrie.",
+                        fr:"Outre la 'Alte Schmelz', il y avait à St. Ingbert d'autres usines de fer importantes spécialisées dans la production de fil et de clous. La ville a longtemps été le centre de l'industrie du fil sarroise.",
+                        en:"Besides the 'Alte Schmelz', there were other significant ironworks in St. Ingbert specializing in wire and nail production. The city was the center of the Saarland wire industry for a long time."
+                    },
+                    img:"", copyright:""
+                },
+                {
+                    id:"s20",name:"Röhrenwerke Bous",coords:[49.2750,6.8050],type:"Stahl",period:"Aktiv",
+                    desc:{
+                        de:"Die Mannesmann Röhrenwerke in Bous sind ein wichtiger Teil der modernen Stahlverarbeitung an der Saar. Hier werden nahtlose Stahlrohre hergestellt. Das Werk nutzt einen Elektrolichtbogenofen zum Schmelzen von Schrott – ein modernes Verfahren im Vergleich zu den alten Hochöfen.",
+                        fr:"Les usines de tubes Mannesmann à Bous sont une partie importante de la transformation moderne de l'acier en Sarre. On y fabrique des tubes en acier sans soudure. L'usine utilise un four à arc électrique pour fondre la ferraille – un procédé moderne comparé aux anciens hauts fourneaux.",
+                        en:"The Mannesmann pipe works in Bous are an important part of modern steel processing on the Saar. Seamless steel pipes are manufactured here. The plant uses an electric arc furnace to melt scrap – a modern process compared to the old blast furnaces."
+                    },
+                    img:"", copyright:""
+                },
+                {
+                    id:"s21",name:"Hüttigweiler",coords:[49.3880,7.0800],type:"Eisen",period:"Mittelalter",
+                    desc:{
+                        de:"Der Name 'Hüttigweiler' (bei Illingen) deutet bereits auf die frühe Existenz von Hüttenwerken hin. Hier fand wohl schon sehr früh, möglicherweise im Mittelalter, eine erste Verarbeitung von oberflächennahen Erzen statt.",
+                        fr:"Le nom 'Hüttigweiler' (près d'Illingen) indique déjà l'existence précoce d'usines sidérurgiques. Il y a probablement eu ici très tôt, peut-être au Moyen Âge, un premier traitement de minerais proches de la surface.",
+                        en:"The name 'Hüttigweiler' (near Illingen) already points to the early existence of ironworks. Very early on, possibly in the Middle Ages, initial processing of near-surface ores likely took place here."
+                    },
+                    img:"", copyright:""
+                }
             ]
         };
 
